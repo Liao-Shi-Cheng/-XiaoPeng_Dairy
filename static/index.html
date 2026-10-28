@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fff4dc">
+  <title>小朋日记 · 把日子慢慢收好</title>
+  <style>
+    /* =========================
+       小朋日记：基础样式
+       这是一个纯 HTML/CSS/JavaScript 页面，不需要 npm 安装依赖。
+       ========================= */
+    :root {
+      --bg: #f6f3ec;
+      --surface: rgba(255,255,255,.82);
+      --surface-solid: #fffdf8;
+      --text: #292f2b;
+      --muted: #7f8980;
+      --line: #e7e5dc;
+      --primary: #537a61;
+      --primary-deep: #345944;
+      --primary-soft: #e5eee4;
+      --accent: #d8a96d;
+      --shadow: 0 18px 50px rgba(42, 54, 43, .08);
+      --radius: 24px;
+      --font: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      color-scheme: light;
+    }
+    /* 第二套风格：极简黑白，布局与视觉语言都不同，不只是换颜色 */
+    body[data-theme="minimal"] {
+      --bg: #f4f4f2;
+      --surface: rgba(255,255,255,.94);
+      --surface-solid: #ffffff;
+      --text: #171717;
+      --muted: #777777;
+      --line: #dededb;
+      --primary: #202020;
+      --primary-deep: #000000;
+      --primary-soft: #ececea;
+      --accent: #a8a8a2;
+      --shadow: 0 12px 34px rgba(0,0,0,.045);
+      --radius: 12px;
+      --font: "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+    }
+    /* 深色风格：低亮度背景与高对比文字，适合夜间使用 */
+    body[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #151a18;
+      --surface: rgba(34, 42, 38, .94);
+      --surface-solid: #222a26;
+      --text: #edf2ee;
+      --muted: #a4b0a8;
+      --line: #39443d;
+      --primary: #8dbb98;
+      --primary-deep: #c2e2c9;
+      --primary-soft: #2d4033;
+      --accent: #d8b47d;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .25);
+      --radius: 24px;
+    }
+    body[data-theme="dark"] { background: var(--bg); }
+    body[data-theme="dark"] .sidebar { background: #1b221e; }
+    body[data-theme="dark"] .hero { background: linear-gradient(120deg, #26392e, #3a3025); }
+    body[data-theme="dark"] .hero p { color: #c0cec3; }
+    body[data-theme="dark"] .hero-kicker { color: #c2e2c9; }
+    body[data-theme="dark"] .mobile-nav { background: rgba(27, 34, 30, .96); }
+    body[data-theme="dark"] .profile-avatar { background: linear-gradient(145deg, #334b3a, #514332); }
+    body[data-theme="dark"] .danger-btn { border-color: #69413d; background: #382724; color: #ffaaa0; }
+    body[data-theme="dark"] input,
+    body[data-theme="dark"] textarea,
+    body[data-theme="dark"] select { color-scheme: dark; }
+    body[data-theme="dark"] .toast { background: #e6eee8; color: #1b241e; }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(224, 211, 176, .25), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      transition: background .25s, color .25s;
+    }
+    body[data-theme="minimal"] { background: var(--bg); }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { display: grid; grid-template-columns: 246px minmax(0, 1fr); min-height: 100vh; max-width: 1600px; margin: 0 auto; }
+    .sidebar {
+      padding: 30px 20px 24px; border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; gap: 30px; min-height: 100vh;
+      background: rgba(255,255,255,.22);
+    }
+    body[data-theme="minimal"] .sidebar { background: #fff; }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; }
+    .brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 15px; background: var(--primary); color: white; font-size: 22px; box-shadow: 0 7px 18px rgba(70, 106, 79, .2); }
+    body[data-theme="minimal"] .brand-mark { border-radius: 8px; box-shadow: none; }
+    .brand-name { font-size: 19px; font-weight: 800; letter-spacing: .04em; }
+    .brand-sub { margin-top: 3px; font-size: 11px; color: var(--muted); letter-spacing: .12em; }
+    .nav-label { padding: 0 12px; color: var(--muted); font-size: 11px; letter-spacing: .16em; margin-bottom: 8px; }
+    .nav-list { display: grid; gap: 7px; }
+    .nav-btn { border: 0; background: transparent; color: var(--muted); text-align: left; border-radius: 14px; padding: 13px 14px; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: .2s; }
+    .nav-btn:hover { background: var(--primary-soft); color: var(--text); }
+    .nav-btn.active { color: var(--primary-deep); background: var(--primary-soft); font-weight: 700; }
+    body[data-theme="minimal"] .nav-btn { border-radius: 6px; }
+    .nav-icon { width: 22px; text-align: center; font-size: 17px; }
+    .sidebar-bottom { margin-top: auto; }
+    .theme-card { border: 1px solid var(--line); border-radius: 18px; padding: 15px; background: var(--surface); }
+    body[data-theme="minimal"] .theme-card { border-radius: 8px; }
+    .theme-card-title { font-size: 12px; font-weight: 700; margin-bottom: 11px; }
+    .theme-options { display: grid; grid-template-columns: 1fr; gap: 7px; }
+    .mobile-theme-switcher { display: none; }
+    .mobile-theme-switcher button { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); padding: 10px 5px; font-size: 12px; white-space: nowrap; }
+    .mobile-theme-switcher button.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-deep); font-weight: 700; }
+    .theme-option { border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; background: transparent; color: var(--muted); font-size: 11px; }
+    .theme-option.active { border-color: var(--primary); color: var(--primary-deep); background: var(--primary-soft); font-weight: 700; }
+    .sidebar-note { font-size: 11px; color: var(--muted); line-height: 1.7; padding: 14px 8px 0; }
+    main { min-width: 0; padding: 32px clamp(18px, 4vw, 58px) 70px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
+    /* 顶部标题区不能被右侧按钮挤成每行几个字 */
+    .topbar > div:first-child { flex: 1 1 auto; min-width: 0; }
+    .top-actions { flex: 0 0 auto; }
+    .eyebrow { font-size: 11px; letter-spacing: .18em; color: var(--primary); font-weight: 800; text-transform: uppercase; }
+    h1 { margin: 9px 0 0; font-size: clamp(26px, 3vw, 38px); letter-spacing: -.04em; line-height: 1.18; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .icon-btn { border: 1px solid var(--line); background: var(--surface); color: var(--text); width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; font-size: 17px; }
+    .primary-btn { border: 0; background: var(--primary); color: #fff; padding: 12px 17px; border-radius: 13px; font-weight: 700; font-size: 13px; box-shadow: 0 8px 18px rgba(62, 98, 71, .15); transition: transform .15s, opacity .15s; }
+    /* 首页顶部“写日记”按钮：加大尺寸和文字，方便找到与点击 */
+    .top-actions #new-diary-btn { padding: 16px 25px; min-height: 54px; font-size: 16px; border-radius: 16px; white-space: nowrap; }
+    body[data-theme="minimal"] .top-actions #new-diary-btn { border-radius: 8px; }
+    @media (max-width: 680px) {
+      .top-actions #new-diary-btn { padding: 18px 22px; min-height: 60px; font-size: 18px; border-radius: 16px; }
+    }
+    .primary-btn:hover { transform: translateY(-1px); }
+    body[data-theme="minimal"] .primary-btn { border-radius: 7px; box-shadow: none; }
+    .secondary-btn { border: 1px solid var(--line); background: var(--surface-solid); color: var(--text); padding: 11px 14px; border-radius: 12px; font-size: 13px; }
+    .hero { border-radius: var(--radius); padding: 28px 30px; background: linear-gradient(120deg, #e9eee3, #f7ead7); position: relative; overflow: hidden; margin-bottom: 22px; min-height: 190px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    body[data-theme="minimal"] .hero { background: #fff; border: 1px solid var(--line); }
+    .hero::after { content: "✳"; position: absolute; right: 28%; top: -48px; font-size: 170px; color: rgba(255,255,255,.48); transform: rotate(18deg); pointer-events: none; }
+    body[data-theme="minimal"] .hero::after { content: ""; }
+    .hero-copy { position: relative; z-index: 1; max-width: 500px; }
+    .hero-kicker { font-size: 12px; color: var(--primary-deep); font-weight: 800; margin-bottom: 12px; }
+    .hero h2 { font-size: clamp(22px, 2.6vw, 30px); line-height: 1.35; margin: 0 0 9px; letter-spacing: -.04em; }
+    .hero p { margin: 0; color: #69786b; font-size: 13px; line-height: 1.8; }
+    body[data-theme="minimal"] .hero p { color: var(--muted); }
+    .hero-illustration { position: relative; z-index: 1; flex: 0 0 120px; height: 120px; display: grid; place-items: center; font-size: 70px; filter: drop-shadow(0 12px 10px rgba(70,80,50,.12)); }
+    body[data-theme="minimal"] .hero-illustration { filter: none; font-size: 56px; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; margin-bottom: 28px; }
+    .stat { border: 1px solid var(--line); border-radius: 18px; padding: 17px 19px; background: var(--surface); }
+    body[data-theme="minimal"] .stat { border-radius: 8px; }
+    .stat-label { font-size: 12px; color: var(--muted); }
+    .stat-value { font-size: 26px; font-weight: 800; letter-spacing: -.04em; margin-top: 7px; }
+    .stat-foot { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 15px; margin: 28px 0 15px; }
+    .section-head h2 { font-size: 19px; margin: 0; letter-spacing: -.03em; }
+    .section-head p { margin: 5px 0 0; font-size: 12px; color: var(--muted); }
+    .search-row { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; width: min(100%, 720px); }
+    .search-date-row { padding-top: 2px; }
+    .search-date-row input[type="date"] { min-width: 0; width: 190px; border: 1px solid var(--line); border-radius: 13px; padding: 10px 11px; color: var(--text); background: var(--surface-solid); font: inherit; font-size: 13px; }
+    .search-box { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); background: var(--surface-solid); border-radius: 13px; padding: 0 13px; flex: 1; min-width: 0; }
+    .search-box input { border: 0; outline: 0; background: transparent; width: 100%; min-width: 0; padding: 12px 0; color: var(--text); font-size: 13px; }
+    .diary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .diary-card { border: 1px solid var(--line); border-radius: 19px; padding: 19px; background: var(--surface); min-width: 0; transition: transform .18s, box-shadow .18s; }
+    .diary-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    body[data-theme="minimal"] .diary-card { border-radius: 8px; box-shadow: none; }
+    .diary-top { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+    .mood-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--primary-soft); color: var(--primary-deep); border-radius: 100px; padding: 5px 9px; font-size: 11px; white-space: nowrap; }
+    body[data-theme="minimal"] .mood-pill { border-radius: 4px; }
+    .diary-date { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .diary-title { font-size: 17px; margin: 15px 0 8px; line-height: 1.5; overflow-wrap: anywhere; }
+    .diary-content { color: #747c75; font-size: 13px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 24px; }
+    body[data-theme="minimal"] .diary-content { color: #666; }
+    .diary-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 13px; margin-top: 16px; }
+    .read-more { border: 0; background: transparent; color: var(--primary); font-size: 12px; font-weight: 700; padding: 4px 0; }
+    .card-actions { display: flex; gap: 5px; }
+    .small-action { border: 1px solid var(--line); background: transparent; color: var(--muted); padding: 6px 8px; border-radius: 8px; font-size: 11px; }
+    .empty-state { border: 1px dashed var(--line); border-radius: var(--radius); padding: 48px 20px; text-align: center; color: var(--muted); background: var(--surface); grid-column: 1 / -1; }
+    .empty-emoji { font-size: 36px; margin-bottom: 10px; }
+    .empty-state strong { display: block; color: var(--text); font-size: 16px; margin-bottom: 7px; }
+    .empty-state p { font-size: 12px; margin: 0 0 16px; }
+    .pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 22px 0 10px; color: var(--muted); font-size: 12px; }
+    .pagination button { border: 1px solid var(--line); background: var(--surface-solid); border-radius: 9px; padding: 8px 12px; color: var(--text); }
+    .pagination button:disabled { opacity: .4; cursor: not-allowed; }
+    .connection { margin-top: 26px; border-radius: 13px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 9px; }
+    .connection-dot { width: 8px; height: 8px; border-radius: 50%; background: #c58a50; flex: 0 0 auto; }
+    .connection.online .connection-dot { background: #5e9c70; }
+    .connection strong { color: var(--text); }
+    .connection .status-text { flex: 1; }
+    .connection button { border: 0; background: transparent; color: var(--primary); font-weight: 700; font-size: 12px; }
+    /* 弹窗：用于新建、编辑和查看日记 */
+    .modal-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(20, 28, 22, .4); display: none; align-items: center; justify-content: center; padding: 18px; backdrop-filter: blur(5px); }
+    .modal-backdrop.show { display: flex; }
+    .modal { width: min(100%, 610px); max-height: min(90vh, 800px); overflow: auto; background: var(--surface-solid); border-radius: 24px; padding: 25px; box-shadow: 0 24px 90px rgba(0,0,0,.2); }
+    body[data-theme="minimal"] .modal { border-radius: 10px; }
+    .modal-head { display: flex; align-items: start; justify-content: space-between; gap: 15px; margin-bottom: 21px; }
+    .modal-head h2 { margin: 0; font-size: 22px; }
+    .modal-head p { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+    .close-btn { border: 0; background: var(--primary-soft); color: var(--text); width: 34px; height: 34px; border-radius: 10px; font-size: 18px; }
+    .form-field { display: grid; gap: 8px; margin-bottom: 17px; }
+    .form-field label { font-size: 12px; font-weight: 800; }
+    .form-field input, .form-field textarea, .form-field select { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 12px 13px; outline: none; background: var(--bg); color: var(--text); font-size: 13px; }
+    .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    .form-field textarea { min-height: 190px; resize: vertical; line-height: 1.8; }
+    .form-hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .modal-actions { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 22px; }
+    .modal-actions-right { display: flex; gap: 8px; }
+    .danger-btn { border: 1px solid #e7c9c5; background: #fff5f3; color: #b14d40; border-radius: 11px; padding: 11px 13px; font-size: 12px; }
+    .toast { position: fixed; z-index: 50; left: 50%; bottom: 28px; transform: translate(-50%, 15px); opacity: 0; pointer-events: none; background: #202821; color: #fff; border-radius: 12px; padding: 12px 17px; font-size: 13px; box-shadow: var(--shadow); transition: .22s; max-width: calc(100vw - 30px); text-align: center; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .mobile-nav { display: none; }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+    .about-panel { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 28px; line-height: 1.9; color: var(--muted); font-size: 14px; }
+    .about-panel h2 { color: var(--text); margin-top: 0; }
+    .about-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+    .about-item { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-solid); }
+    .about-item strong { display: block; color: var(--text); margin-bottom: 4px; }
+    /* 个人主页 */
+    .profile-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 28px; max-width: 100%; align-items: start; }
+    .profile-card { border: 0; border-radius: 0; background: transparent; padding: 0; min-width: 0; }
+    .profile-card + .profile-card { border-top: 0; border-left: 1px solid var(--line); padding: 0 0 0 20px; }
+    .profile-intro { display: flex; align-items: center; gap: 16px; }
+    .profile-avatar { width: 76px; height: 76px; flex: 0 0 76px; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(145deg, #e2eddf, #f3e3cb); font-size: 36px; border: 3px solid var(--surface-solid); box-shadow: 0 3px 12px rgba(50,70,50,.08); }
+    .profile-nickname { font-size: 25px; font-weight: 800; letter-spacing: -.04em; }
+    .profile-caption { margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .profile-card .section-head { margin-top: 15px !important; margin-bottom: 4px; }
+    .profile-card .section-head h2 { font-size: 19px; margin: 0; }
+    .profile-card .section-head p { display: none; }
+    .home-daily-write-wrap { margin: 0 0 18px; }
+    .home-daily-write-btn { width: 100%; min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 20px; border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--line)); border-radius: 18px; background: linear-gradient(105deg, color-mix(in srgb, var(--primary-soft) 86%, var(--surface)), var(--surface)); color: var(--text); text-align: left; box-shadow: 0 6px 18px rgba(50, 70, 48, .05); }
+    .home-daily-write-btn .write-copy { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .home-daily-write-btn .write-mark { width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border-radius: 12px; background: var(--primary); color: #fff; font-size: 22px; line-height: 1; }
+    .home-daily-write-btn strong { display: block; font-size: 15px; font-weight: 750; }
+    .home-daily-write-btn small { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .home-daily-write-btn .write-arrow { color: var(--primary); font-size: 20px; flex: 0 0 auto; }
+    .home-daily-write-btn:hover { transform: translateY(-1px); }
+    body[data-theme="minimal"] .home-daily-write-btn { border-radius: 8px; box-shadow: none; background: var(--surface); }
+    body[data-theme="dark"] .home-daily-write-btn { background: linear-gradient(105deg, color-mix(in srgb, var(--primary) 14%, var(--surface)), var(--surface)); }
+    .home-pet-section { margin: 18px 0 30px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+    .home-pet-section .section-head { margin: 0 0 5px; }
+    .home-pet-section .section-head h2 { font-size: 18px; font-weight: 750; }
+    .home-pet-section .section-head p { font-size: 12px; }
+    .settings-section { margin-top: 30px; }
+    .settings-list { border-top: 1px solid var(--line); }
+    .settings-row { width: 100%; display: flex; align-items: center; gap: 13px; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--text); padding: 16px 8px; font: inherit; cursor: pointer; }
+    .settings-row-icon { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; border-radius: 12px; background: var(--primary-soft); color: var(--primary-deep); font-size: 19px; }
+    .settings-row-main { display: grid; gap: 4px; flex: 1; min-width: 0; }
+    .settings-row-main strong { font-size: 15px; }
+    .settings-row-main small { color: var(--muted); font-size: 12px; }
+    .settings-row-arrow { color: var(--muted); font-size: 25px; }
+    .version-pill { color: var(--muted); font-size: 12px; padding: 5px 9px; border-radius: 999px; background: var(--primary-soft); }
+    .settings-row:not(.settings-version):active { background: var(--primary-soft); }
+    .account-panel { text-align: center; }
+    .account-panel h2 { margin: 12px 0 4px; }
+    .account-avatar { width: 68px; height: 68px; margin: 0 auto; display: grid; place-items: center; border-radius: 50%; background: var(--primary-soft); color: var(--primary-deep); font-size: 30px; }
+    @media (max-width: 680px) { .settings-row { padding: 14px 4px; } }
+    .mood-choices { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 10px; }
+    .mood-choice { border: 1px solid var(--line); background: var(--surface-solid); color: var(--text); border-radius: 999px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 7px; font-size: 14px; transition: .18s; }
+    .mood-choice[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-deep); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 10%, transparent); font-weight: 700; }
+    .mood-choice:focus-visible, .icon-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    #diary-mood { display: none; }
+    #search-mood { max-width: 150px; }
+    @media (max-width: 680px) {
+      .profile-grid { grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 16px; }
+      .profile-card { padding: 0; }
+      .profile-card + .profile-card { padding-left: 12px; }
+      .profile-intro { gap: 10px; align-items: flex-start; }
+      .profile-avatar { width: 58px; height: 58px; flex-basis: 58px; font-size: 29px; }
+      .profile-nickname { font-size: 21px; }
+      .profile-caption { font-size: 12px; line-height: 1.6; }
+      .profile-card .section-head { margin-top: 16px !important; }
+      .mood-choices { gap: 8px; }
+      .mood-choice { padding: 10px 12px; font-size: 13px; }
+      .top-actions #about-btn { display: grid !important; }
+    }
+    @media (max-width: 900px) {
+      .app-shell { grid-template-columns: 205px minmax(0, 1fr); }
+      .sidebar { padding: 25px 13px; }
+      main { padding: 26px 24px 50px; }
+      .diary-grid { grid-template-columns: 1fr; }
+      .hero { padding: 23px; }
+    }
+    @media (max-width: 680px) {
+      .app-shell { display: block; }
+      .sidebar { display: none; }
+      main { padding: 23px 16px 100px; }
+      /* 手机端顶部明确分成两排：标题一排，操作按钮一排 */
+      .topbar { flex-direction: column; align-items: stretch; gap: 13px; margin-bottom: 21px; }
+      .topbar > div:first-child { width: 100%; min-width: 0; }
+      h1 { font-size: 27px; line-height: 1.3; overflow-wrap: normal; word-break: keep-all; }
+      .top-actions { width: 100%; justify-content: flex-end; flex-wrap: nowrap; }
+      .eyebrow { font-size: 10px; }
+      .top-actions { gap: 6px; }
+      .mobile-theme-switcher { display: flex; gap: 7px; margin: -5px 0 19px; width: 100%; }
+      .icon-btn { width: 38px; height: 38px; border-radius: 12px; }
+      .top-actions .primary-btn { padding: 11px 12px; font-size: 12px; }
+      .hero { min-height: 174px; padding: 22px 20px; border-radius: 21px; }
+      .hero-illustration { flex-basis: 70px; font-size: 48px; height: 80px; }
+      .hero h2 { font-size: 22px; }
+      .hero p { font-size: 12px; max-width: 260px; }
+      .hero::after { right: 16%; font-size: 110px; top: -20px; }
+      .stats { gap: 8px; margin-bottom: 25px; }
+      .stat { padding: 13px 11px; border-radius: 14px; }
+      .stat-label { font-size: 10px; }
+      .stat-value { font-size: 22px; }
+      .stat-foot { font-size: 10px; }
+      .section-head { align-items: start; flex-direction: column; }
+      .search-row { width: 100%; }
+      .search-date-row input[type="date"] { flex: 1 1 42%; width: auto; min-width: 0; }
+      #search-keyword { min-width: 120px; }
+      #search-mood { max-width: none; flex: 1 1 100%; }
+      #search-btn { flex: 1 1 100%; }
+      .diary-card { padding: 17px; border-radius: 17px; }
+      .connection { align-items: start; }
+      .mobile-nav { display: grid; position: fixed; z-index: 15; bottom: 0; left: 0; right: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 8px 7px calc(8px + constant(safe-area-inset-bottom)); padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: rgba(255,253,248,.97); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+      body[data-theme="minimal"] .mobile-nav { background: rgba(255,255,255,.96); }
+      .mobile-nav button { border: 0; background: transparent; color: var(--muted); display: grid; justify-items: center; gap: 4px; padding: 5px 2px; font-size: 10px; }
+      .mobile-nav button span:first-child { font-size: 19px; line-height: 1.2; }
+      .mobile-nav button.active { color: var(--primary); font-weight: 800; }
+      .mobile-nav button.active span:first-child { transform: translateY(-1px); }
+      .top-actions #new-diary-btn { display: none; }
+      .mobile-nav .mobile-write-btn { grid-column: 3; width: 52px; height: 52px; justify-self: center; align-self: start; margin-top: -25px; border-radius: 50%; background: var(--primary); color: #fff; box-shadow: 0 5px 16px rgba(48, 78, 54, .28); border: 4px solid var(--bg); display: grid; place-content: center; gap: 0; padding: 0; font-size: 22px; line-height: 1; }
+      .mobile-nav .mobile-write-btn span:first-child { font-size: 25px; line-height: 1; }
+      .mobile-nav .mobile-write-btn span:last-child { display: none; }
+      .mobile-nav .mobile-write-btn:active { transform: scale(.96); }
+      .modal { padding: 21px 18px; border-radius: 21px; }
+      .form-field textarea { min-height: 160px; }
+      .about-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 370px) {
+      .hero-illustration { display: none; }
+      .top-actions .icon-btn { display: none; }
+      .top-actions #about-btn { display: grid !important; }
+      .stat { padding: 12px 8px; }
+      .stat-value { font-size: 20px; }
+    }
+
+    /* =========================
+       高饱和主题与鲸鱼娘宠物
+       ========================= */
+    body[data-theme="warm"] {
+      --bg: #fff4dc;
+      --surface: rgba(255, 255, 255, .82);
+      --surface-solid: #fffdf8;
+      --text: #17203c;
+      --muted: #5d6681;
+      --line: #efc6b7;
+      --primary: #1559ff;
+      --primary-deep: #073bad;
+      --primary-soft: #dbe7ff;
+      --accent: #ff5a36;
+      --pet-accent: #00bfff;
+      --pet-accent-2: #ff3d91;
+      --pet-glow: rgba(0, 191, 255, .28);
+      --shadow: 0 22px 60px rgba(43, 56, 126, .14);
+      --radius: 28px;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(255, 83, 45, .18), transparent 29%),
+        radial-gradient(circle at 90% 8%, rgba(0, 181, 255, .22), transparent 34%),
+        var(--bg);
+    }
+    body[data-theme="minimal"] {
+      --bg: #eee0c4;
+      --surface: rgba(255, 250, 239, .9);
+      --surface-solid: #fffbf2;
+      --text: #38271a;
+      --muted: #755d45;
+      --line: #cdb28a;
+      --primary: #8d4c25;
+      --primary-deep: #5c2e16;
+      --primary-soft: #ead1ad;
+      --accent: #b85d2d;
+      --pet-accent: #a96e3b;
+      --pet-accent-2: #4f7254;
+      --pet-glow: rgba(141, 76, 37, .2);
+      --shadow: 0 16px 38px rgba(83, 54, 30, .13);
+      --radius: 14px;
+      background: var(--bg);
+    }
+    body[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #050505;
+      --surface: rgba(17, 17, 17, .94);
+      --surface-solid: #121212;
+      --text: #f8f5ed;
+      --muted: #b7b0a5;
+      --line: #3b3731;
+      --primary: #ffcc33;
+      --primary-deep: #ffe477;
+      --primary-soft: #30270d;
+      --accent: #ff5a35;
+      --pet-accent: #ffcc33;
+      --pet-accent-2: #ff5a35;
+      --pet-glow: rgba(255, 204, 51, .18);
+      --shadow: 0 24px 64px rgba(0, 0, 0, .32);
+      --radius: 28px;
+      background:
+        radial-gradient(circle at 82% 2%, rgba(255, 90, 53, .13), transparent 28%),
+        radial-gradient(circle at 8% 18%, rgba(255, 204, 51, .1), transparent 30%),
+        var(--bg);
+    }
+    body[data-theme="warm"] .sidebar {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .78), rgba(213, 234, 255, .7));
+    }
+    body[data-theme="minimal"] .sidebar {
+      background: #e6d1ad;
+    }
+    body[data-theme="dark"] .sidebar {
+      background: linear-gradient(180deg, #0b0b0b, #050505);
+    }
+    body[data-theme="warm"] .diary-card,
+    body[data-theme="warm"] .about-panel,
+    body[data-theme="warm"] .theme-card,
+    body[data-theme="minimal"] .diary-card,
+    body[data-theme="minimal"] .about-panel,
+    body[data-theme="minimal"] .theme-card,
+    body[data-theme="dark"] .diary-card,
+    body[data-theme="dark"] .about-panel,
+    body[data-theme="dark"] .theme-card {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    body[data-theme="dark"] .primary-btn,
+    body[data-theme="dark"] .home-daily-write-btn .write-mark,
+    body[data-theme="dark"] .mobile-nav .mobile-write-btn {
+      color: #031323;
+    }
+    body[data-theme="warm"] .primary-btn {
+      box-shadow: 0 11px 24px rgba(21, 89, 255, .24);
+    }
+    body[data-theme="minimal"] .primary-btn {
+      background: #8d4c25;
+      color: #fffaf0;
+      box-shadow: 0 8px 20px rgba(94, 50, 22, .18);
+    }
+    body[data-theme="dark"] .primary-btn {
+      background: linear-gradient(135deg, #ffcc33, #ff7840);
+      box-shadow: 0 9px 24px rgba(255, 169, 51, .16);
+    }
+    body[data-theme="dark"] .secondary-btn,
+    body[data-theme="dark"] .icon-btn {
+      background: rgba(19, 19, 19, .94);
+    }
+    body[data-theme="dark"] .mobile-nav {
+      background: rgba(4, 4, 4, .97);
+    }
+    body[data-theme="minimal"] .profile-avatar {
+      background: #d8bc90;
+    }
+    body[data-theme="minimal"] .pet-console {
+      background: var(--surface-solid);
+    }
+    body[data-theme="minimal"] .pet-stage {
+      background: #e8d5b5;
+    }
+    body[data-theme="minimal"] .pet-mood-btn[aria-pressed="true"] {
+      background: #e6ccb0;
+    }
+    body[data-theme="minimal"] .modal-backdrop.editor-mode .modal {
+      background: var(--bg);
+    }
+    body[data-theme="minimal"] .modal-backdrop.editor-mode .modal-head,
+    body[data-theme="minimal"] .modal-backdrop.editor-mode .modal-actions {
+      background: rgba(238, 224, 196, .92);
+    }
+    main {
+      position: relative;
+      isolation: isolate;
+      overflow-x: clip;
+    }
+    .wood-ring {
+      display: none;
+      position: absolute;
+      z-index: 0;
+      top: 50px;
+      right: 0;
+      width: min(52vw, 580px);
+      aspect-ratio: 1;
+      color: #8c6741;
+      opacity: .2;
+      pointer-events: none;
+    }
+    .wood-ring svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    body[data-theme="minimal"] .wood-ring {
+      display: block;
+    }
+    body[data-theme="minimal"] header,
+    body[data-theme="minimal"] .mobile-theme-switcher,
+    body[data-theme="minimal"] .view-panel,
+    body[data-theme="minimal"] .connection {
+      position: relative;
+      z-index: 1;
+    }
+    .diary-content {
+      color: var(--muted);
+    }
+
+    .home-pet-section {
+      margin: 22px 0 8px;
+    }
+    .home-pet-section .section-head {
+      margin-bottom: 13px;
+    }
+    .home-pet-section .section-head h2 {
+      font-size: 20px;
+      letter-spacing: -.03em;
+    }
+    .pet-console {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(250px, .82fr) minmax(320px, 1.18fr);
+      min-height: 340px;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+      border-radius: 30px;
+      background:
+        linear-gradient(125deg,
+          color-mix(in srgb, var(--surface-solid) 92%, var(--pet-accent) 8%),
+          var(--surface-solid) 52%,
+          color-mix(in srgb, var(--surface-solid) 90%, var(--pet-accent-2) 10%));
+      box-shadow: var(--shadow);
+    }
+    .pet-stage {
+      position: relative;
+      min-width: 0;
+      min-height: 340px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 50% 56%, var(--pet-glow), transparent 48%),
+        linear-gradient(145deg,
+          color-mix(in srgb, var(--primary-soft) 74%, transparent),
+          color-mix(in srgb, var(--surface-solid) 82%, var(--accent) 18%));
+    }
+    .pet-stage::before,
+    .pet-stage::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .pet-stage::before {
+      width: 240px;
+      height: 240px;
+      border: 1px solid color-mix(in srgb, var(--pet-accent) 48%, transparent);
+      box-shadow:
+        0 0 0 28px color-mix(in srgb, var(--pet-accent) 8%, transparent),
+        0 0 0 62px color-mix(in srgb, var(--pet-accent-2) 6%, transparent);
+    }
+    .pet-stage::after {
+      width: 10px;
+      height: 10px;
+      right: 13%;
+      top: 16%;
+      background: var(--pet-accent-2);
+      box-shadow:
+        -152px 48px 0 -3px var(--pet-accent),
+        -122px -48px 0 -4px var(--accent),
+        36px 127px 0 -3px var(--primary);
+      opacity: .75;
+    }
+    .pet-avatar {
+      position: relative;
+      width: min(82%, 300px);
+      aspect-ratio: 1;
+      margin-top: 8px;
+      transform-origin: 50% 94%;
+      animation: whale-breathe 4.4s ease-in-out infinite;
+    }
+    .pet-avatar.pet-mood-enter {
+      animation:
+        whale-mood-pop .44s cubic-bezier(.2, .78, .25, 1),
+        whale-breathe 4.4s ease-in-out .44s infinite;
+    }
+    .pet-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 18px 16px rgba(13, 31, 64, .24));
+      transition: opacity .13s ease, transform .2s ease;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .pet-image-blink {
+      opacity: 0;
+      display: none;
+      pointer-events: none;
+    }
+    #home-pet[data-pet-mood="calm"] .pet-image-blink {
+      display: block;
+      animation: whale-blink-cycle 6s ease-in-out infinite;
+    }
+    .pet-mood-badge {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      color: var(--text);
+      background: color-mix(in srgb, var(--surface-solid) 88%, transparent);
+      border: 1px solid color-mix(in srgb, var(--line) 74%, transparent);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      font-size: 12px;
+      font-weight: 750;
+      box-shadow: 0 8px 22px rgba(16, 31, 70, .1);
+    }
+    .pet-mood-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pet-accent);
+      box-shadow: 0 0 0 5px color-mix(in srgb, var(--pet-accent) 13%, transparent);
+    }
+    .pet-content {
+      position: relative;
+      min-width: 0;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 17px;
+    }
+    .pet-bubble {
+      position: relative;
+      padding: 19px 21px;
+      border: 1px solid color-mix(in srgb, var(--line) 74%, transparent);
+      border-radius: 21px 21px 21px 7px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      box-shadow: 0 12px 34px rgba(19, 36, 75, .07);
+    }
+    .pet-bubble::before {
+      content: "";
+      position: absolute;
+      left: -8px;
+      bottom: 14px;
+      width: 15px;
+      height: 15px;
+      border-left: 1px solid color-mix(in srgb, var(--line) 74%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--line) 74%, transparent);
+      background: var(--surface);
+      transform: rotate(45deg);
+    }
+    .pet-bubble-label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--primary-deep);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .pet-message {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(15px, 1.5vw, 19px);
+      font-weight: 720;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+    .pet-mood-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pet-mood-btn {
+      border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
+      background: color-mix(in srgb, var(--surface-solid) 88%, transparent);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 11px;
+      font-size: 12px;
+      font-weight: 650;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+    .pet-mood-btn:hover {
+      transform: translateY(-1px);
+      color: var(--text);
+      border-color: var(--pet-accent);
+    }
+    .pet-mood-btn[aria-pressed="true"] {
+      color: var(--text);
+      border-color: var(--pet-accent);
+      background:
+        linear-gradient(135deg,
+          color-mix(in srgb, var(--pet-accent) 16%, var(--surface-solid)),
+          color-mix(in srgb, var(--pet-accent-2) 12%, var(--surface-solid)));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--pet-accent) 10%, transparent);
+    }
+    .pet-ai-card {
+      padding: 13px 15px;
+      border: 1px dashed color-mix(in srgb, var(--pet-accent) 54%, var(--line));
+      border-radius: 15px;
+      background: color-mix(in srgb, var(--primary-soft) 54%, transparent);
+    }
+    .pet-ai-card[hidden] {
+      display: none !important;
+    }
+    .pet-ai-copy {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .pet-consent-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .pet-consent-check input {
+      margin-top: 2px;
+      accent-color: var(--primary);
+    }
+    .pet-ai-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .pet-ai-actions .primary-btn,
+    .pet-ai-actions .secondary-btn {
+      padding: 8px 11px;
+      font-size: 12px;
+      border-radius: 10px;
+    }
+    .pet-ai-actions .primary-btn:disabled {
+      opacity: .42;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    .pet-text-button {
+      border: 0;
+      padding: 8px 2px;
+      background: transparent;
+      color: var(--primary-deep);
+      font-size: 12px;
+      font-weight: 750;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .pet-ai-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: -5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .pet-ai-status[hidden] {
+      display: none !important;
+    }
+    .pet-ai-status .pet-text-button {
+      margin-left: auto;
+    }
+    .pet-ai-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pet-accent);
+      animation: pet-ai-pulse 1s ease-in-out infinite;
+    }
+    .privacy-dialog {
+      width: min(92vw, 570px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 0;
+      color: var(--text);
+      background: var(--surface-solid);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, .3);
+    }
+    .privacy-dialog::backdrop {
+      background: rgba(4, 17, 34, .56);
+      backdrop-filter: blur(5px);
+    }
+    .privacy-inner {
+      padding: 25px;
+    }
+    .privacy-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 16px;
+    }
+    .privacy-head h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+    .privacy-copy {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.85;
+    }
+    .privacy-copy strong {
+      color: var(--text);
+    }
+    .privacy-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    body.editor-open {
+      overflow: hidden;
+    }
+    .modal-backdrop.editor-mode {
+      display: block;
+      overflow: auto;
+      padding: 0;
+      background: var(--bg);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    .modal-backdrop.editor-mode .modal {
+      width: 100%;
+      min-height: 100vh;
+      max-height: none;
+      overflow: visible;
+      padding: 0;
+      border-radius: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 6%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 28%),
+        radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--pet-accent) 12%, transparent), transparent 30%),
+        var(--bg);
+      box-shadow: none;
+    }
+    .modal-backdrop.editor-mode .modal-head {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      align-items: center;
+      margin: 0;
+      padding: 17px clamp(18px, 5vw, 70px);
+      border-bottom: 1px solid color-mix(in srgb, var(--line) 74%, transparent);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .modal-backdrop.editor-mode .modal-head h2 {
+      font-size: clamp(20px, 2.5vw, 28px);
+    }
+    .modal-backdrop.editor-mode .modal-head p {
+      max-width: 620px;
+    }
+    .modal-backdrop.editor-mode #diary-form {
+      width: min(100%, 1040px);
+      margin: 0 auto;
+      padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 52px) 110px;
+    }
+    .modal-backdrop.editor-mode .form-field {
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    .modal-backdrop.editor-mode .form-field label {
+      font-size: 14px;
+      letter-spacing: .04em;
+    }
+    .modal-backdrop.editor-mode #diary-title {
+      --rule-step: 64px;
+      min-height: 88px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: var(--text);
+      font-size: clamp(27px, 4.2vw, 44px);
+      font-weight: 800;
+      line-height: var(--rule-step);
+      letter-spacing: -.035em;
+      background-color: color-mix(in srgb, var(--surface-solid) 94%, transparent);
+      background-image: linear-gradient(
+        to bottom,
+        transparent calc(var(--rule-step) - 1px),
+        color-mix(in srgb, var(--line) 72%, transparent) calc(var(--rule-step) - 1px),
+        color-mix(in srgb, var(--line) 72%, transparent) var(--rule-step)
+      );
+      background-size: 100% var(--rule-step);
+      background-position: 0 12px;
+      background-repeat: repeat-y;
+    }
+    .modal-backdrop.editor-mode #diary-content {
+      --rule-step: 44px;
+      min-height: max(440px, calc(100vh - 470px));
+      padding: 16px 18px 30px;
+      border-radius: 10px;
+      color: var(--text);
+      font-size: clamp(18px, 1.8vw, 21px);
+      line-height: var(--rule-step);
+      letter-spacing: .015em;
+      background-color: color-mix(in srgb, var(--surface-solid) 95%, transparent);
+      background-image: linear-gradient(
+        to bottom,
+        transparent calc(var(--rule-step) - 1px),
+        color-mix(in srgb, var(--line) 68%, transparent) calc(var(--rule-step) - 1px),
+        color-mix(in srgb, var(--line) 68%, transparent) var(--rule-step)
+      );
+      background-size: 100% var(--rule-step);
+      background-position: 0 16px;
+      background-repeat: repeat-y;
+      background-attachment: local;
+      resize: vertical;
+    }
+    .modal-backdrop.editor-mode .mood-choices {
+      padding: 13px 15px;
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+      border-radius: 13px;
+      background: color-mix(in srgb, var(--surface-solid) 80%, transparent);
+    }
+    .modal-backdrop.editor-mode .modal-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 7;
+      margin: 20px calc(clamp(16px, 4vw, 52px) * -1) -110px;
+      padding: 15px clamp(16px, 4vw, 52px);
+      border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .modal-backdrop.editor-mode #save-diary-btn {
+      min-width: 126px;
+      padding: 13px 20px;
+      font-size: 14px;
+    }
+    body[data-theme="minimal"] .modal-backdrop.editor-mode #diary-title,
+    body[data-theme="minimal"] .modal-backdrop.editor-mode #diary-content {
+      box-shadow: inset 0 0 0 1px rgba(96, 62, 32, .08);
+    }
+    body[data-theme="dark"] .modal-backdrop.editor-mode #diary-title,
+    body[data-theme="dark"] .modal-backdrop.editor-mode #diary-content {
+      background-color: #111;
+    }
+    #home-pet[data-pet-mood="excited"] .pet-avatar {
+      animation-duration: 2.5s;
+    }
+    #home-pet[data-pet-mood="angry"] .pet-avatar {
+      animation-duration: 3.4s;
+    }
+    #home-pet[data-pet-intensity="4"] .pet-stage::before {
+      box-shadow:
+        0 0 0 34px color-mix(in srgb, var(--pet-accent) 12%, transparent),
+        0 0 0 74px color-mix(in srgb, var(--pet-accent-2) 9%, transparent);
+    }
+    #home-pet[data-pet-intensity="5"] .pet-stage::before {
+      box-shadow:
+        0 0 0 40px color-mix(in srgb, var(--pet-accent) 16%, transparent),
+        0 0 0 84px color-mix(in srgb, var(--pet-accent-2) 12%, transparent);
+    }
+    #home-pet[data-pet-intensity="4"] .pet-stage::after,
+    #home-pet[data-pet-intensity="5"] .pet-stage::after {
+      opacity: 1;
+      transform: scale(1.18);
+    }
+    @keyframes whale-breathe {
+      0%, 100% { transform: translateY(1px) scale(.985); }
+      50% { transform: translateY(-5px) scale(1.012); }
+    }
+    @keyframes whale-blink-cycle {
+      0%, 92%, 100% { opacity: 0; }
+      93%, 96% { opacity: 1; }
+      97% { opacity: 0; }
+    }
+    @keyframes whale-mood-pop {
+      0% { opacity: .35; transform: translateY(8px) scale(.94); }
+      70% { opacity: 1; transform: translateY(-3px) scale(1.02); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    @keyframes pet-ai-pulse {
+      0%, 100% { opacity: .45; transform: scale(.76); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+    @media (max-width: 820px) {
+      .pet-console {
+        grid-template-columns: 1fr;
+      }
+      .pet-stage {
+        min-height: 310px;
+      }
+      .pet-avatar {
+        width: min(76vw, 275px);
+      }
+      .pet-content {
+        padding: 20px;
+      }
+      .pet-bubble::before {
+        display: none;
+      }
+      .pet-bubble {
+        border-radius: 18px 18px 18px 6px;
+      }
+    }
+    @media (max-width: 480px) {
+      .home-pet-section {
+        margin-top: 18px;
+      }
+      .pet-console {
+        border-radius: 22px;
+      }
+      .pet-stage {
+        min-height: 270px;
+      }
+      .pet-avatar {
+        width: min(74vw, 235px);
+      }
+      .pet-content {
+        padding: 17px;
+        gap: 14px;
+      }
+      .pet-message {
+        font-size: 15px;
+      }
+      .pet-mood-actions {
+        gap: 6px;
+      }
+      .pet-mood-btn {
+        padding: 7px 9px;
+        font-size: 11px;
+      }
+      .privacy-inner {
+        padding: 21px 18px;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pet-avatar,
+      .pet-avatar.pet-mood-enter,
+      .pet-ai-pulse,
+      .pet-image-blink {
+        animation: none !important;
+      }
+      .pet-image {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body data-theme="warm" data-emotion-endpoint="/api/pet/share">
+  <div class="app-shell">
+    <!-- 电脑端左侧导航栏；手机端会自动隐藏，改用底部导航栏 -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">✿</div>
+        <div><div class="brand-name">小朋日记</div><div class="brand-sub">A LITTLE DAILY</div></div>
+      </div>
+      <div>
+        <div class="nav-label">我的空间 / SPACE</div>
+        <nav class="nav-list">
+          <button class="nav-btn active" data-view="home"><span class="nav-icon">⌂</span>日记首页</button>
+          <button class="nav-btn" data-view="diaries"><span class="nav-icon">▤</span>全部日记</button>
+          <button class="nav-btn" data-view="search"><span class="nav-icon">⌕</span>搜索日记</button>
+          <button class="nav-btn" data-view="profile"><span class="nav-icon">♙</span>个人主页</button>
+        </nav>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="theme-card">
+          <div class="theme-card-title">切换视觉风格</div>
+          <div class="theme-options">
+            <button class="theme-option" data-theme-choice="dark">● 黑色</button>
+            <button class="theme-option active" data-theme-choice="warm">✦ 汽水浅色</button>
+            <button class="theme-option" data-theme-choice="minimal">▥ 原木色</button>
+          </div>
+        </div>
+        <div class="sidebar-note">每一天都值得被认真记下。<br>慢一点，也没有关系。</div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="wood-ring" aria-hidden="true">
+        <svg viewBox="0 0 600 600" fill="none" stroke="currentColor">
+          <path d="M299 54C434 53 550 163 550 301C550 443 438 551 296 551C154 551 48 444 49 300C50 162 160 55 299 54Z" stroke-width="4"/>
+          <path d="M299 78C420 77 524 176 525 299C526 427 424 527 298 527C170 527 73 428 74 298C76 173 174 79 299 78Z" stroke-width="3"/>
+          <path d="M299 105C405 104 498 191 498 299C499 414 407 502 297 502C185 502 98 414 99 298C101 188 188 106 299 105Z" stroke-width="3"/>
+          <path d="M298 133C390 132 470 207 470 299C471 397 394 477 297 477C199 477 123 399 124 298C126 204 203 134 298 133Z" stroke-width="2.5"/>
+          <path d="M298 162C373 161 443 225 443 299C444 382 381 452 297 452C212 452 149 383 150 298C152 220 217 163 298 162Z" stroke-width="2.5"/>
+          <path d="M298 191C357 190 416 241 416 299C417 369 367 427 297 427C226 427 176 368 176 298C178 236 231 192 298 191Z" stroke-width="2"/>
+          <path d="M298 221C341 220 389 257 389 299C390 356 352 402 297 402C240 402 203 354 203 298C205 253 245 222 298 221Z" stroke-width="2"/>
+          <path d="M298 251C325 250 362 274 362 299C363 343 336 377 297 377C256 377 230 341 230 298C232 271 260 252 298 251Z" stroke-width="1.8"/>
+          <path d="M299 112C271 155 240 201 242 246C244 283 274 312 300 339" stroke-width="1.6" opacity=".75"/>
+          <path d="M432 306C392 286 357 258 327 230" stroke-width="1.4" opacity=".65"/>
+          <path d="M165 388C208 356 241 326 267 290" stroke-width="1.4" opacity=".65"/>
+        </svg>
+      </div>
+      <header class="topbar">
+        <div>
+          <div class="eyebrow" id="page-eyebrow">2026 · 今日</div>
+          <h1 id="page-title">把日子慢慢收好。</h1>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" id="theme-toggle" title="切换风格（点击循环切换）" aria-label="切换风格（点击循环切换）">◐</button>
+          <button class="icon-btn" id="export-btn" title="导出全部日记" aria-label="导出日记">⇩</button>
+          <button class="primary-btn" id="new-diary-btn">＋ 写日记</button>
+        </div>
+      </header>
+      <div class="mobile-theme-switcher" aria-label="选择页面风格">
+        <button type="button" data-theme-choice="dark">● 黑色</button>
+        <button type="button" data-theme-choice="warm" class="active">✦ 浅色</button>
+        <button type="button" data-theme-choice="minimal">▥ 原木</button>
+      </div>
+
+      <section class="view-panel active" id="view-home">
+        <div class="home-daily-write-wrap" id="home-daily-write-wrap">
+          <button type="button" class="home-daily-write-btn" id="home-daily-write-btn">
+            <span class="write-copy"><span class="write-mark">＋</span><span><strong>写下今天的日记</strong><small>给今天留下一点值得记住的事</small></span></span>
+            <span class="write-arrow" aria-hidden="true">↗</span>
+          </button>
+        </div>
+        <section class="home-pet-section" aria-labelledby="pet-section-title">
+          <div class="section-head">
+            <div><h2 id="pet-section-title">鲸鱼娘的心情</h2><p>她会陪你记录，也会回应你今天的心情。</p></div>
+          </div>
+          <div class="pet-console" id="home-pet" data-pet-state="waiting" data-pet-mood="calm">
+            <div class="pet-stage">
+              <div class="pet-avatar" id="pet-avatar">
+                <img class="pet-image" id="pet-image" src="static/assets/pets/calm.png" alt="鲸鱼娘，平静地陪在主人身边">
+                <img class="pet-image pet-image-blink" id="pet-blink-image" src="static/assets/pets/calm-blink.png" alt="" aria-hidden="true">
+              </div>
+              <div class="pet-mood-badge"><span class="pet-mood-dot" aria-hidden="true"></span><strong id="pet-mood-label">平静</strong></div>
+            </div>
+            <div class="pet-content">
+              <div class="pet-bubble">
+                <span class="pet-bubble-label">此刻想对你说</span>
+                <p class="pet-message" id="pet-message" aria-live="polite">我在呢，今天想记下什么？</p>
+              </div>
+              <div class="pet-mood-actions" aria-label="切换鲸鱼娘的情绪">
+                <button type="button" class="pet-mood-btn" data-pet-mood-option="happy" aria-pressed="false">开心</button>
+                <button type="button" class="pet-mood-btn" data-pet-mood-option="calm" aria-pressed="true">平静</button>
+                <button type="button" class="pet-mood-btn" data-pet-mood-option="sad" aria-pressed="false">难过</button>
+                <button type="button" class="pet-mood-btn" data-pet-mood-option="angry" aria-pressed="false">生气</button>
+                <button type="button" class="pet-mood-btn" data-pet-mood-option="excited" aria-pressed="false">兴奋</button>
+                <button type="button" class="pet-mood-btn" data-pet-mood-option="tired" aria-pressed="false">疲惫</button>
+              </div>
+              <div class="pet-ai-card" id="pet-ai-consent-card">
+                <p class="pet-ai-copy">启用后，只有你点“分享今天给鲸鱼娘”时，今天这一篇日记才会发送给 AI 服务分析情绪，用来决定她的表情和一句话回应。</p>
+                <label class="pet-consent-check">
+                  <input type="checkbox" id="pet-consent-checkbox">
+                  <span>我已阅读并同意<a class="pet-text-button" id="open-pet-privacy" href="#pet-privacy-dialog">AI 情绪分析隐私说明</a></span>
+                </label>
+                <div class="pet-ai-actions">
+                  <button type="button" class="primary-btn" id="enable-pet-ai" disabled>同意并启用</button>
+                </div>
+              </div>
+              <div class="pet-ai-status" id="pet-ai-status" hidden>
+                <span class="pet-ai-pulse" aria-hidden="true"></span>
+                <span id="pet-ai-status-text">鲸鱼娘正在听你的心情…</span>
+                <button type="button" class="pet-text-button" id="revoke-pet-ai" hidden>撤回同意</button>
+              </div>
+              <div class="pet-ai-actions" id="pet-share-actions" hidden>
+                <button type="button" class="primary-btn" id="share-today-btn">分享今天给鲸鱼娘</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="view-panel" id="view-diaries">
+        <div class="section-head">
+          <div><h2>全部日记</h2><p>按记录时间倒序排列，慢慢回看自己的生活。</p></div>
+          <button class="secondary-btn" id="refresh-btn">↻ 刷新</button>
+        </div>
+        <div class="diary-grid" id="all-list"></div>
+        <div class="pagination" id="pagination">
+          <button id="prev-page">上一页</button><span id="page-info">第 1 页</span><button id="next-page">下一页</button>
+        </div>
+      </section>
+
+      <section class="view-panel" id="view-search">
+        <div class="section-head">
+          <div><h2>搜索日记</h2><p>可以搜索关键词、筛选心情，也可以按日期查找。</p></div>
+        </div>
+        <div class="search-row search-keyword-row">
+          <div class="search-box"><span>⌕</span><input id="search-keyword" type="search" placeholder="输入关键词搜索日记（可不填）"></div>
+          <select id="search-mood" class="secondary-btn" aria-label="按心情筛选">
+            <option value="">全部心情</option><option>开心</option><option>难过</option><option>生气</option><option>平静</option><option>兴奋</option><option>疲惫</option>
+          </select>
+          <button class="primary-btn" id="search-btn">搜索</button>
+        </div>
+        <div class="search-row search-date-row" style="margin-top:10px">
+          <label for="search-date" style="align-self:center;color:var(--muted);font-size:13px;white-space:nowrap">按日期查找</label>
+          <input id="search-date" type="date" aria-label="选择日期" title="选择日期">
+          <button class="secondary-btn" id="clear-search-date" type="button">清除日期</button>
+        </div>
+        <div class="diary-grid" id="search-list" style="margin-top:18px"></div>
+      </section>
+
+      <section class="view-panel" id="view-profile">
+        <div class="section-head">
+          <div><h2>个人主页</h2><p>这里是属于你自己的小小空间。</p></div>
+        </div>
+        <div class="profile-grid">
+          <section class="profile-card" aria-label="个人资料">
+            <div class="profile-intro">
+              <div class="profile-avatar" role="img" aria-label="默认头像">🌿</div>
+              <div><div class="profile-nickname">小朋</div><div class="profile-caption">慢慢生活，认真记录。<br>每一天都值得被珍藏。</div></div>
+            </div>
+            <div class="section-head" style="margin-top:28px"><div><h2>我的小档案</h2><p>记录生活，也照顾好自己。</p></div></div>
+            <p class="profile-caption">记录日常，留住心情。</p>
+          </section>
+
+        </div>
+        <section class="settings-section" aria-label="设置">
+          <div class="section-head"><div><h2>设置</h2><p>账号信息与应用信息。</p></div></div>
+          <div class="settings-list">
+            <button class="settings-row" type="button" data-go="account"><span class="settings-row-icon">♙</span><span class="settings-row-main"><strong>账号</strong><small>查看账号相关信息</small></span><span class="settings-row-arrow">›</span></button>
+            <button class="settings-row" type="button" data-go="about"><span class="settings-row-icon">ⓘ</span><span class="settings-row-main"><strong>关于</strong><small>了解小朋日记</small></span><span class="settings-row-arrow">›</span></button>
+            <div class="settings-row settings-version"><span class="settings-row-icon">⌘</span><span class="settings-row-main"><strong>版本号</strong><small>小朋日记 v1.0.0</small></span><span class="version-pill">v1.0.0</span></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="view-panel" id="view-account">
+        <div class="section-head"><div><h2>账号</h2><p>账号相关信息。</p></div><button class="secondary-btn" data-go="profile">返回我的</button></div>
+        <div class="about-panel account-panel">
+          <div class="account-avatar">♙</div>
+          <h2>当前使用者</h2>
+          <p>你正在使用小朋日记。当前版本暂未接入独立的注册、登录和账号管理服务。</p>
+          <p>日记数据的保存与读取由当前配置的后端服务负责。</p>
+        </div>
+      </section>
+
+      <section class="view-panel" id="view-about">
+        <div class="about-panel">
+          <h2>关于小朋日记</h2>
+          <p>小朋日记是一个给自己留一点空间的个人日记工具。你可以记录日常、整理心情，也可以在以后重新翻看曾经的自己。</p>
+          <div class="about-list">
+            <div class="about-item"><strong>✎ 认真记录</strong><span>标题、正文和心情都可以按自己的习惯填写。</span></div>
+            <div class="about-item"><strong>⌕ 轻松回看</strong><span>通过关键词或心情找到过去的记录。</span></div>
+            <div class="about-item"><strong>⇩ 留下备份</strong><span>将日记导出为 Markdown 文件，方便保存。</span></div>
+            <div class="about-item"><strong>◐ 三种风格</strong><span>汽水浅色、黑色与原木色，可以随时切换。</span></div>
+          </div>
+          <p style="margin-top:22px">小提醒：请勿在日记中填写密码、银行卡号等敏感信息。当前页面通过后端接口保存数据，是否能成功使用取决于后端服务是否已启动。</p>
+        </div>
+      </section>
+
+      <div class="connection" id="connection-status">
+        <span class="connection-dot"></span><span class="status-text"><strong>正在检查后端连接</strong> · 请稍候</span><button id="retry-connection">重新连接</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- 手机端底部横向导航：电脑端不会显示 -->
+  <nav class="mobile-nav" aria-label="主导航">
+    <button class="active" data-view="home"><span>⌂</span><span>首页</span></button>
+    <button data-view="diaries"><span>▤</span><span>日记</span></button>
+    <button type="button" class="mobile-write-btn" id="mobile-new-diary-btn" aria-label="写日记" title="写日记"><span>＋</span><span>写日记</span></button>
+    <button data-view="search"><span>⌕</span><span>搜索</span></button>
+    <button data-view="profile"><span>♙</span><span>我的</span></button>
+  </nav>
+
+  <!-- 新建/编辑/查看日记共用一个弹窗，减少重复代码 -->
+  <div class="modal-backdrop" id="diary-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h2 id="modal-title">写下今天</h2><p id="modal-subtitle">不需要完美表达，写下真实的感受就好。</p></div>
+        <button class="close-btn" id="close-modal" aria-label="关闭">×</button>
+      </div>
+      <form id="diary-form">
+        <div class="form-field">
+          <label for="diary-title">日记标题 <span style="color:#bf6658">*</span></label>
+          <input id="diary-title" maxlength="200" placeholder="给今天起个名字" required>
+        </div>
+        <div class="form-field">
+          <label for="diary-mood">此刻的心情 <span class="form-hint">（选填）</span></label>
+          <select id="diary-mood" aria-label="此刻的心情">
+            <option value="">先不定义心情</option><option>开心</option><option>难过</option><option>生气</option><option>平静</option><option>兴奋</option><option>疲惫</option>
+          </select>
+          <div class="mood-choices" id="mood-choices" role="group" aria-label="选择心情">
+            <button type="button" class="mood-choice" data-mood="开心" aria-pressed="false">😊 开心</button>
+            <button type="button" class="mood-choice" data-mood="难过" aria-pressed="false">😢 难过</button>
+            <button type="button" class="mood-choice" data-mood="生气" aria-pressed="false">😠 生气</button>
+            <button type="button" class="mood-choice" data-mood="平静" aria-pressed="false">😌 平静</button>
+            <button type="button" class="mood-choice" data-mood="兴奋" aria-pressed="false">🤩 兴奋</button>
+            <button type="button" class="mood-choice" data-mood="疲惫" aria-pressed="false">😴 疲惫</button>
+          </div>
+          <input id="custom-mood" maxlength="50" placeholder="写下自己的心情" style="display:none;margin-top:8px">
+        </div>
+        <div class="form-field">
+          <label for="diary-content">日记正文 <span class="form-hint">（选填）</span></label>
+          <textarea id="diary-content" placeholder="今天发生了什么？有什么想留给未来的自己？"></textarea>
+        </div>
+        <div class="modal-actions">
+          <span class="form-hint" id="created-at-hint"></span>
+          <div class="modal-actions-right"><button type="button" class="secondary-btn" id="cancel-modal">取消</button><button type="submit" class="primary-btn" id="save-diary-btn">保存日记</button></div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <dialog class="privacy-dialog" id="pet-privacy-dialog" aria-labelledby="pet-privacy-title">
+    <div class="privacy-inner">
+      <div class="privacy-head">
+        <div>
+          <div class="eyebrow">PRIVACY · AI</div>
+          <h2 id="pet-privacy-title">AI 情绪分析说明</h2>
+        </div>
+        <button type="button" class="close-btn" id="close-pet-privacy" aria-label="关闭隐私说明">×</button>
+      </div>
+      <div class="privacy-copy">
+        <p><strong>发送内容：</strong>只有在你明确同意并点击“分享今天给鲸鱼娘”后，今天这一篇日记的标题和正文才会发送到已配置的 DeepSeek API 用于情绪分析；历史日记不会被上传。</p>
+        <p><strong>使用目的：</strong>分析结果仅用于选择鲸鱼娘的情绪形象，并生成一句不超过 30 字的回应，不会写入你的日记正文。</p>
+        <p><strong>数据边界：</strong>API Key 只保存在后端环境变量 <code>DEEPSEEK_API_KEY</code> 中，不会发送到浏览器。请不要在日记里填写密码、银行卡号等敏感信息。</p>
+        <p><strong>你的选择：</strong>不启用 AI 时，日记功能仍可正常使用，你也可以随时手动切换鲸鱼娘的情绪。你可以在当前浏览器中撤回同意，撤回后不会再发送新的分析请求。</p>
+      </div>
+      <div class="privacy-actions">
+        <button type="button" class="primary-btn" id="privacy-understood">我知道了</button>
+      </div>
+    </div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    /* =========================
+       后端连接配置
+       - 通过 file:// 双击打开时，使用文档里的完整后端地址。
+       - 如果页面由后端托管在 localhost:18080，则使用相对路径。
+       ========================= */
+    const API_BASE = (location.protocol === "file:" || location.port === "5173" || location.port === "5500")
+      ? "http://localhost:18080"
+      : "";
+    // 后端实际路由不同时，只需修改 body 上的 data-emotion-endpoint。
+    const EMOTION_ANALYSIS_PATH = document.body.dataset.emotionEndpoint || "/api/pet/share";
+    const PET_AI_CONSENT_KEY = "xiaopeng-pet-ai-consent-v1";
+    const PET_MOODS = {
+      happy: {
+        label: "开心",
+        image: "static/assets/pets/happy.png",
+        message: "你笑一下，我的世界就亮啦！"
+      },
+      calm: {
+        label: "平静",
+        image: "static/assets/pets/calm.png",
+        blinkImage: "static/assets/pets/calm-blink.png",
+        message: "我在呢，慢慢说就好。"
+      },
+      sad: {
+        label: "难过",
+        image: "static/assets/pets/sad.png",
+        message: "先靠一会儿，我会一直陪着。"
+      },
+      angry: {
+        label: "生气",
+        image: "static/assets/pets/angry.png",
+        message: "谁惹你啦？我替你鼓气！"
+      },
+      excited: {
+        label: "兴奋",
+        image: "static/assets/pets/excited.png",
+        message: "冲冲冲，今天也要闪闪发光！"
+      },
+      tired: {
+        label: "疲惫",
+        image: "static/assets/pets/tired.png",
+        message: "累了就靠过来歇一会儿吧。"
+      }
+    };
+    const PET_MOOD_ALIASES = {
+      happy: "happy",
+      开心: "happy",
+      calm: "calm",
+      平静: "calm",
+      sad: "sad",
+      低落: "sad",
+      难过: "sad",
+      comfort: "sad",
+      angry: "angry",
+      愤怒: "angry",
+      生气: "angry",
+      excited: "excited",
+      兴奋: "excited",
+      surprised: "excited",
+      tired: "tired",
+      疲惫: "tired",
+      焦虑: "sad"
+    };
+
+    const PAGE_SIZE = 50;
+    const APP_TIME_ZONE = "Asia/Shanghai";
+    const EXPLICIT_TIME_ZONE_PATTERN = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+    const DISPLAY_DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
+      timeZone: APP_TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23"
+    });
+    let currentPage = 1;
+    let totalDiaries = 0;
+    let currentView = "home";
+    let editingDiaryId = null;
+    let viewingOnly = false;
+    let petAiConsent = false;
+    let petAnalyzing = false;
+    let petSharedToday = false;
+    let petMoodAnimationTimer = null;
+    let petAnalysisRequestId = 0;
+    let diaryListRequestId = 0;
+    let searchRequestId = 0;
+    let activeSearchCriteria = null;
+    let toastTimer = null;
+    // 今日状态完全由后端决定，不使用手机本地日期判断是否已写。
+    let todayStatus = { written: false, today_id: null };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    // 统一请求后端：自动处理 JSON、HTTP 错误和后端未启动的情况。
+    async function apiRequest(path, options = {}) {
+      let response;
+      try {
+        response = await fetch(API_BASE + path, {
+          ...options,
+          headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...(options.headers || {})
+          }
+        });
+      } catch (error) {
+        throw new Error("连接不上后端。请确认后端已启动在 http://localhost:18080，然后点击“重新连接”。");
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      if (!response.ok) {
+        let message = `请求失败（HTTP ${response.status}）`;
+        if (contentType.includes("application/json")) {
+          const data = await response.json().catch(() => ({}));
+          if (data.error) message = data.error;
+        }
+        if (response.status === 404) message = "接口或日记不存在（404）：" + message;
+        throw new Error(message);
+      }
+
+      // 导出接口返回文件，不是 JSON，因此这里不尝试解析它。
+      if (path.endsWith("/export")) return response;
+      if (response.status === 204) return {};
+      return response.json().catch(() => ({}));
+    }
+
+    function showToast(message) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    function setConnection(ok, message) {
+      const panel = $("#connection-status");
+      panel.classList.toggle("online", ok);
+      panel.querySelector(".status-text").innerHTML = ok
+        ? "<strong>后端已连接</strong> · 日记将保存到服务端"
+        : `<strong>暂时连接不上后端</strong> · ${escapeHtml(message || "请检查后端服务是否启动")}`;
+    }
+
+    // 防止用户输入的日记内容被当作 HTML 执行。
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+    }
+
+    function formatDateParts(raw) {
+      const date = new Date(raw);
+      if (Number.isNaN(date.getTime())) return null;
+      const parts = Object.fromEntries(
+        DISPLAY_DATE_FORMATTER.formatToParts(date)
+          .filter(part => part.type !== "literal")
+          .map(part => [part.type, part.value])
+      );
+      return {
+        date: `${parts.year}-${parts.month}-${parts.day}`,
+        time: `${parts.hour}:${parts.minute}`
+      };
+    }
+
+    function formatDate(raw) {
+      if (!raw) return "时间未知";
+      const value = String(raw).trim();
+      if (EXPLICIT_TIME_ZONE_PATTERN.test(value)) {
+        const formatted = formatDateParts(value);
+        if (formatted) return `${formatted.date} ${formatted.time}`;
+      }
+      return value.replace("T", " ").slice(0, 16);
+    }
+
+    function diaryDateKey(diary) {
+      const explicitDate = String(diary.date || "").trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(explicitDate)) return explicitDate;
+
+      const raw = String(diary.created_at || "").trim();
+      if (!raw) return "";
+      if (EXPLICIT_TIME_ZONE_PATTERN.test(raw)) {
+        return formatDateParts(raw)?.date || "";
+      }
+      const localMatch = raw.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
+      return localMatch ? `${localMatch[1]}-${localMatch[2]}-${localMatch[3]}` : "";
+    }
+
+    function moodEmoji(mood) {
+      const map = { "开心":"☀", "平静":"☁", "焦虑":"〰", "难过":"☂", "疲惫":"☾", "期待":"✧", "感恩":"♡", "充实":"✿", "迷茫":"…"};
+      return map[mood] || (mood ? "♡" : "✧");
+    }
+
+    // 把日记对象渲染成卡片；所有用户内容都先转义，避免 HTML 注入。
+    function diaryCard(diary) {
+      const mood = diary.mood || "";
+      const content = diary.content || "这篇日记还没有写正文。";
+      return `
+        <article class="diary-card">
+          <div class="diary-top">
+            <span class="mood-pill">${moodEmoji(mood)} ${escapeHtml(mood || "未标注心情")}</span>
+            <span class="diary-date">${escapeHtml(formatDate(diary.created_at))}</span>
+          </div>
+          <h3 class="diary-title">${escapeHtml(diary.title || "无标题日记")}</h3>
+          <div class="diary-content">${escapeHtml(content)}</div>
+          <div class="diary-footer">
+            <button class="read-more" data-action="view" data-id="${Number(diary.id)}">阅读日记 ↗</button>
+            <div class="card-actions">
+              <button class="small-action" data-action="edit" data-id="${Number(diary.id)}">编辑</button>
+              <button class="small-action" data-action="delete" data-id="${Number(diary.id)}">删除</button>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    function emptyState(title, description, buttonText = "写下第一篇日记", action = "new") {
+      return `<div class="empty-state"><div class="empty-emoji">✿</div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(description)}</p><button class="primary-btn" data-action="${escapeHtml(action)}">${escapeHtml(buttonText)}</button></div>`;
+    }
+
+    async function loadDiaries(page = currentPage) {
+      currentPage = page;
+      const requestId = ++diaryListRequestId;
+      try {
+        const data = await apiRequest(`/api/diaries?page=${page}&size=${PAGE_SIZE}`);
+        if (requestId !== diaryListRequestId) return;
+        const diaries = Array.isArray(data.diaries) ? data.diaries : [];
+        totalDiaries = Number(data.total || 0);
+        if (!diaries.length && totalDiaries > 0 && page > 1) {
+          return loadDiaries(page - 1);
+        }
+        setConnection(true);
+        renderDiaries(diaries);
+        updatePagination(Number(data.page || page), Number(data.size || PAGE_SIZE), totalDiaries);
+      } catch (error) {
+        if (requestId !== diaryListRequestId) return;
+        setConnection(false, error.message);
+        $("#all-list").innerHTML = emptyState("暂时无法读取日记", error.message, "重新连接", "reconnect");
+        $("#search-list").innerHTML = emptyState("搜索服务暂不可用", "连接后端后就可以搜索日记。", "重新连接", "reconnect");
+      }
+    }
+
+    function normalizePetMood(value, fallback = "calm") {
+      const key = String(value || "").trim();
+      return PET_MOOD_ALIASES[key] || PET_MOOD_ALIASES[key.toLowerCase()] || fallback;
+    }
+
+    function prefersReducedMotion() {
+      return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+    }
+
+    function schedulePetBlink() {
+      const blinkImage = $("#pet-blink-image");
+      const pet = $("#home-pet");
+      if (!blinkImage || !pet) return;
+      blinkImage.style.animationDelay = `${(-Math.random() * 5.8).toFixed(2)}s`;
+      blinkImage.style.animationPlayState = document.hidden ? "paused" : "running";
+    }
+
+    function setPetMood(mood, options = {}) {
+      const normalized = normalizePetMood(mood);
+      const config = PET_MOODS[normalized];
+      const pet = $("#home-pet");
+      const image = $("#pet-image");
+      const blinkImage = $("#pet-blink-image");
+      const avatar = $("#pet-avatar");
+      if (!pet || !image || !config) return normalized;
+
+      pet.dataset.petMood = normalized;
+      pet.dataset.petState = "responding";
+      pet.dataset.petIntensity = String(
+        Math.max(1, Math.min(5, Number(options.intensity) || 3))
+      );
+      $("#pet-mood-label").textContent = config.label;
+      image.src = config.image;
+      image.alt = `鲸鱼娘，${config.label}地陪在主人身边`;
+      blinkImage.src = config.blinkImage || config.image;
+      blinkImage.style.opacity = "";
+
+      const message = String(options.message || config.message).trim();
+      $("#pet-message").textContent = message || config.message;
+      $$("[data-pet-mood-option]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.petMoodOption === normalized));
+      });
+
+      clearTimeout(petMoodAnimationTimer);
+      if (options.animate !== false && !prefersReducedMotion()) {
+        avatar.classList.remove("pet-mood-enter");
+        void avatar.offsetWidth;
+        avatar.classList.add("pet-mood-enter");
+        petMoodAnimationTimer = setTimeout(() => avatar.classList.remove("pet-mood-enter"), 520);
+      }
+      schedulePetBlink();
+      return normalized;
+    }
+
+    function preloadPetAssets() {
+      Object.values(PET_MOODS).forEach(config => {
+        [config.image, config.blinkImage].filter(Boolean).forEach(path => {
+          const image = new Image();
+          image.src = path;
+        });
+      });
+    }
+
+    function readPetConsent() {
+      try {
+        return localStorage.getItem(PET_AI_CONSENT_KEY) === "true";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function setPetAiStatus(mode, text = "") {
+      const status = $("#pet-ai-status");
+      const pulse = status?.querySelector(".pet-ai-pulse");
+      const revoke = $("#revoke-pet-ai");
+      if (!status) return;
+      if (mode === "hidden") {
+        status.hidden = true;
+        return;
+      }
+      status.hidden = false;
+      if (pulse) pulse.hidden = mode !== "loading";
+      if (revoke) revoke.hidden = !petAiConsent || mode === "loading";
+      $("#pet-ai-status-text").textContent = text || (
+        mode === "loading" ? "鲸鱼娘正在听你的心情…" :
+        mode === "error" ? "这次没有听清，已保留手动的情绪切换" :
+        "AI 情绪分析已启用"
+      );
+    }
+
+    function renderPetConsent() {
+      const card = $("#pet-ai-consent-card");
+      if (!card) return;
+      card.hidden = petAiConsent;
+      if (petAiConsent) {
+        setPetAiStatus(petAnalyzing ? "loading" : "enabled");
+      } else {
+        setPetAiStatus("hidden");
+      }
+    }
+
+    function setPetConsent(enabled) {
+      petAiConsent = Boolean(enabled);
+      try {
+        if (petAiConsent) {
+          localStorage.setItem(PET_AI_CONSENT_KEY, "true");
+        } else {
+          localStorage.removeItem(PET_AI_CONSENT_KEY);
+        }
+      } catch (_) {}
+      renderPetConsent();
+      renderPetShareButton();
+      if (!petAiConsent) {
+        petAnalysisRequestId++;
+        petAnalyzing = false;
+      }
+      loadTodayStatus();
+    }
+
+    function normalizeEmotionResult(raw) {
+      const payload = raw && typeof raw === "object" && raw.data && typeof raw.data === "object"
+        ? raw.data
+        : (raw || {});
+      const petMessage = String(payload.message || payload.pet_message || "").trim().slice(0, 30);
+      const mood = normalizePetMood(payload.emotion || payload.pet_mood || payload.mood, "");
+      if (!mood) throw new Error("AI 返回的宠物心情无效");
+      return {
+        emotion: String(payload.emotion || PET_MOODS[mood].label).trim(),
+        intensity: 3,
+        pet_message: petMessage,
+        mood
+      };
+    }
+
+    function renderPetShareButton() {
+      const actions = $("#pet-share-actions");
+      const button = $("#share-today-btn");
+      if (!actions || !button) return;
+      const shouldShow = petAiConsent && todayStatus.written === true && !petSharedToday;
+      actions.hidden = !shouldShow;
+      button.disabled = petAnalyzing;
+      button.textContent = petAnalyzing ? "正在听你的心情…" : "分享今天给鲸鱼娘";
+    }
+
+    async function shareDiaryToday() {
+      if (!petAiConsent || petAnalyzing) return false;
+      const requestId = ++petAnalysisRequestId;
+      petAnalyzing = true;
+      setPetAiStatus("loading");
+      renderPetShareButton();
+      try {
+        const data = await apiRequest(EMOTION_ANALYSIS_PATH, {
+          method: "POST",
+          body: JSON.stringify({ consent: true })
+        });
+        if (requestId !== petAnalysisRequestId) return false;
+        const result = normalizeEmotionResult(data);
+        setPetMood(result.mood, {
+          message: result.pet_message || PET_MOODS[result.mood].message,
+          animate: true,
+          intensity: result.intensity
+        });
+        petSharedToday = true;
+        petAnalyzing = false;
+        setPetAiStatus("enabled");
+        renderPetShareButton();
+        return true;
+      } catch (error) {
+        if (requestId !== petAnalysisRequestId) return false;
+        petAnalyzing = false;
+        setPetAiStatus("error");
+        renderPetShareButton();
+        showToast("这次没有听清，请稍后再试");
+        return false;
+      }
+    }
+
+    function renderTodayStatus() {
+      const wrap = $("#home-daily-write-wrap");
+      const pet = $("#home-pet");
+      if (wrap) wrap.hidden = todayStatus.written === true;
+      if (!pet) return;
+      pet.dataset.petState = todayStatus.written ? "written" : "waiting";
+    }
+
+    async function loadTodayStatus() {
+      let data = {};
+      try {
+        data = await apiRequest("/api/status");
+        todayStatus = {
+          written: data.written === true,
+          today_id: data.today_id == null ? null : Number(data.today_id)
+        };
+      } catch (error) {
+        // 状态接口暂不可用时不猜测本地日期，保持可写状态并允许重试。
+        todayStatus = { written: false, today_id: null };
+      }
+      renderTodayStatus();
+
+      // 宠物状态唯一来源：/api/pet/today（服务器今天是否已共享分析结果）
+      let reaction = null;
+      try {
+        const pet = await apiRequest("/api/pet/today");
+        if (pet && pet.shared === true && pet.emotion) {
+          reaction = normalizeEmotionResult({ emotion: pet.emotion, message: pet.message });
+          petSharedToday = true;
+        }
+      } catch (_) {}
+      if (reaction) {
+        setPetMood(reaction.mood, {
+          message: reaction.pet_message || PET_MOODS[reaction.mood].message,
+          animate: false,
+          intensity: reaction.intensity
+        });
+      } else {
+        setPetMood(todayStatus.written ? "happy" : "calm", {
+          message: todayStatus.written
+            ? (petAiConsent
+                ? "今天的日记已经收好啦，把今天分享给鲸鱼娘听听她的回应吧。"
+                : "今天的日记已经收好啦，我还在你身边。")
+            : "我在呢，今天想记下什么？",
+          animate: false
+        });
+      }
+      renderPetShareButton();
+      return todayStatus;
+    }
+
+    function renderDiaries(diaries) {
+      $("#all-list").innerHTML = diaries.length
+        ? diaries.map(diaryCard).join("")
+        : emptyState("还没有日记", "写下第一篇，给今天留个小小的纪念。");
+    }
+
+    function updatePagination(page, size, total) {
+      const pages = Math.max(1, Math.ceil(total / size));
+      $("#page-info").textContent = `第 ${page} / ${pages} 页 · 共 ${total} 篇`;
+      $("#prev-page").disabled = page <= 1;
+      $("#next-page").disabled = page >= pages;
+    }
+
+    function navigate(view) {
+      currentView = view;
+      $$(".view-panel").forEach(panel => panel.classList.toggle("active", panel.id === `view-${view}`));
+      $$("[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === view));
+      const labels = {
+        home: ["YOUR LITTLE CORNER", "把日子慢慢收好。"],
+        diaries: ["YOUR DIARY ARCHIVE", "每一篇，都值得回看。"],
+        search: ["FIND YOUR MOMENTS", "找回某个小小的瞬间。"],
+        profile: ["MY LITTLE SPACE", "这是属于你自己的小小空间。"],
+        account: ["MY ACCOUNT", "账号相关信息。"],
+        about: ["A LITTLE ABOUT US", "留一块空间给自己。"]
+      };
+      $("#page-eyebrow").textContent = view === "home" ? homeDateLabel() : labels[view][0];
+      $("#page-title").textContent = labels[view][1];
+      if (view === "diaries") loadDiaries(currentPage);
+      if (view === "home") { loadDiaries(1); loadTodayStatus(); }
+      if (view === "search") $("#search-keyword").focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    const DIARY_INDENT = "\u3000\u3000";
+
+    function formatDiaryParagraphs(value) {
+      const text = String(value || "").replace(/\r\n?/g, "\n");
+      if (!text.trim()) return "";
+      return text.split("\n").map(line => {
+        const clean = line.replace(/^[\s\u3000]+/, "").trimEnd();
+        return clean ? `${DIARY_INDENT}${clean}` : "";
+      }).join("\n");
+    }
+
+    function openModal(mode, diary = null) {
+      editingDiaryId = mode === "edit" && diary ? Number(diary.id) : null;
+      viewingOnly = mode === "view";
+      $("#diary-form").reset();
+      $("#custom-mood").style.display = "none";
+      $("#modal-title").textContent = mode === "edit" ? "修改这篇日记" : mode === "view" ? "日记详情" : "写下今天";
+      $("#modal-subtitle").textContent = mode === "edit" ? "有些想法改变了，也可以回来修改。" : mode === "view" ? "好好回看曾经的自己。" : "不需要完美表达，写下真实的感受就好。";
+      $("#save-diary-btn").textContent = mode === "edit" ? "保存修改" : "保存日记";
+      $("#save-diary-btn").style.display = viewingOnly ? "none" : "";
+      $("#cancel-modal").textContent = viewingOnly ? "关闭" : "返回";
+      $("#diary-title").value = (diary && diary.title) || "";
+      $("#diary-content").value = formatDiaryParagraphs((diary && diary.content) || "");
+      const mood = (diary && diary.mood) || "";
+      const moodSelect = $("#diary-mood");
+      const knownMood = Array.from(moodSelect.options).some(option => option.value === mood);
+      if (mood && !knownMood) {
+        // 保留旧日记中的自定义心情，避免用户只修改正文时覆盖原值。
+        const customOption = document.createElement("option");
+        customOption.value = mood;
+        customOption.textContent = mood;
+        customOption.dataset.dynamicMood = "true";
+        moodSelect.appendChild(customOption);
+      }
+      moodSelect.value = mood;
+      updateMoodChoices();
+      $("#created-at-hint").textContent = (diary && diary.created_at) ? `记录于 ${formatDate(diary.created_at)}` : "写完后会自动记录时间";
+      ["#diary-title", "#diary-content", "#diary-mood", "#custom-mood"].forEach(selector => $(selector).disabled = viewingOnly);
+      $("#diary-modal").classList.toggle("editor-mode", !viewingOnly);
+      $("#diary-modal").classList.add("show");
+      document.body.classList.toggle("editor-open", !viewingOnly);
+      if (!viewingOnly) setTimeout(() => $("#diary-title").focus(), 50);
+    }
+
+    function closeModal() {
+      $("#diary-modal").classList.remove("show");
+      $("#diary-modal").classList.remove("editor-mode");
+      document.body.classList.remove("editor-open");
+      editingDiaryId = null;
+      viewingOnly = false;
+    }
+
+    async function fetchDiary(id) {
+      try {
+        return await apiRequest(`/api/diaries/${id}`);
+      } catch (error) {
+        showToast(error.message);
+        return null;
+      }
+    }
+
+    async function handleCardAction(action, id) {
+      if (action === "new") {
+        openModal("new");
+        return;
+      }
+      if (action === "delete") {
+        if (!confirm("确定删除这篇日记吗？删除后无法恢复。")) return;
+        try {
+          await apiRequest(`/api/diaries/${id}`, { method: "DELETE" });
+          showToast("日记已删除");
+          await refreshAfterDiaryChange();
+        } catch (error) { showToast(error.message); }
+        return;
+      }
+      const diary = await fetchDiary(id);
+      if (!diary) return;
+      if (action === "view") openModal("view", diary);
+      if (action === "edit") openModal("edit", diary);
+    }
+
+    async function checkConnection() {
+      try {
+        await apiRequest(`/api/diaries?page=1&size=1`);
+        setConnection(true);
+        showToast("已成功连接后端");
+        await loadDiaries(1);
+        if (currentView === "search") {
+          const criteria = readSearchCriteria();
+          if (hasSearchCriteria(criteria)) {
+            await executeSearch(criteria);
+          } else {
+            $("#search-list").innerHTML = "";
+          }
+        }
+      } catch (error) {
+        setConnection(false, error.message);
+        showToast(error.message);
+      }
+    }
+
+    async function refreshAfterDiaryChange() {
+      const targetPage = currentView === "diaries" ? currentPage : 1;
+      await loadDiaries(targetPage);
+      if (currentView === "search" && activeSearchCriteria) {
+        await executeSearch(activeSearchCriteria);
+      }
+    }
+
+    function readSearchCriteria() {
+      return {
+        keyword: $("#search-keyword").value.trim(),
+        mood: $("#search-mood").value,
+        selectedDate: $("#search-date").value
+      };
+    }
+
+    function hasSearchCriteria(criteria) {
+      return Boolean(criteria.keyword || criteria.mood || criteria.selectedDate);
+    }
+
+    function setSearchBusy(busy) {
+      const button = $("#search-btn");
+      button.disabled = busy;
+      button.textContent = busy ? "搜索中…" : "搜索";
+    }
+
+    async function searchDiaries() {
+      const criteria = readSearchCriteria();
+      if (!hasSearchCriteria(criteria)) {
+        searchRequestId++;
+        setSearchBusy(false);
+        showToast("请输入关键词，或选择心情/日期筛选");
+        $("#search-keyword").focus();
+        return;
+      }
+      return executeSearch(criteria);
+    }
+
+    async function executeSearch(criteria) {
+      const requestId = ++searchRequestId;
+      setSearchBusy(true);
+      try {
+        let diaries = [];
+        if (criteria.keyword) {
+          let path = `/api/diaries/search?keyword=${encodeURIComponent(criteria.keyword)}`;
+          if (criteria.mood) path += `&mood=${encodeURIComponent(criteria.mood)}`;
+          const data = await apiRequest(path);
+          if (requestId !== searchRequestId) return false;
+          diaries = Array.isArray(data.diaries) ? data.diaries : [];
+        } else {
+          // 纯日期/心情筛选时，逐页读取日记，避免只筛选最新的 50 篇。
+          const first = await apiRequest(`/api/diaries?page=1&size=${PAGE_SIZE}`);
+          if (requestId !== searchRequestId) return false;
+          diaries = Array.isArray(first.diaries) ? first.diaries.slice() : [];
+          const total = Number(first.total || diaries.length);
+          const pages = Math.ceil(total / PAGE_SIZE);
+          for (let page = 2; page <= pages; page++) {
+            if (requestId !== searchRequestId) return false;
+            const data = await apiRequest(`/api/diaries?page=${page}&size=${PAGE_SIZE}`);
+            if (requestId !== searchRequestId) return false;
+            if (Array.isArray(data.diaries)) diaries = diaries.concat(data.diaries);
+          }
+        }
+        diaries = diaries.filter(diary => {
+          const dateKey = diaryDateKey(diary);
+          if (criteria.mood && String(diary.mood || "") !== criteria.mood) return false;
+          if (criteria.selectedDate && (!dateKey || dateKey !== criteria.selectedDate)) return false;
+          return true;
+        });
+        if (requestId !== searchRequestId) return false;
+        activeSearchCriteria = { ...criteria };
+        $("#search-list").innerHTML = diaries.length
+          ? diaries.map(diaryCard).join("")
+          : emptyState("没有找到相关日记", "试试调整关键词、心情或日期。", "重新搜索", "search");
+        setConnection(true);
+        return true;
+      } catch (error) {
+        if (requestId !== searchRequestId) return false;
+        $("#search-list").innerHTML = emptyState("搜索失败", error.message, "重新搜索", "search");
+        setConnection(false, error.message);
+        return false;
+      } finally {
+        if (requestId === searchRequestId) setSearchBusy(false);
+      }
+    }
+
+    async function exportDiaries() {
+      try {
+        const response = await apiRequest("/api/diaries/export");
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "diaries.md";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showToast("已开始导出 diaries.md");
+      } catch (error) {
+        showToast(error.message);
+      }
+    }
+
+    // 监听导航按钮；桌面侧栏和手机底部栏共用 data-view。
+    $$("[data-view]").forEach(button => button.addEventListener("click", () => navigate(button.dataset.view)));
+    $$("[data-go]").forEach(button => button.addEventListener("click", () => navigate(button.dataset.go)));
+    $("#new-diary-btn").addEventListener("click", () => openModal("new"));
+    $("#home-daily-write-btn").addEventListener("click", () => openModal("new"));
+    $("#mobile-new-diary-btn").addEventListener("click", () => openModal("new"));
+    $("#close-modal").addEventListener("click", closeModal);
+    $("#cancel-modal").addEventListener("click", closeModal);
+    $("#diary-modal").addEventListener("click", event => { if (event.target === $("#diary-modal")) closeModal(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeModal(); });
+    $("#refresh-btn").addEventListener("click", () => loadDiaries(currentPage));
+    $("#retry-connection").addEventListener("click", checkConnection);
+    $("#export-btn").addEventListener("click", exportDiaries);
+    $("#search-btn").addEventListener("click", searchDiaries);
+    $("#clear-search-date").addEventListener("click", async () => {
+      $("#search-date").value = "";
+      const criteria = readSearchCriteria();
+      if (hasSearchCriteria(criteria)) {
+        await executeSearch(criteria);
+      } else {
+        searchRequestId++;
+        activeSearchCriteria = null;
+        setSearchBusy(false);
+        $("#search-list").innerHTML = "";
+        showToast("已清除日期筛选");
+      }
+    });
+    $("#search-keyword").addEventListener("keydown", event => { if (event.key === "Enter") searchDiaries(); });
+    $("#prev-page").addEventListener("click", () => { if (currentPage > 1) loadDiaries(currentPage - 1); });
+    $("#next-page").addEventListener("click", () => { if (currentPage * PAGE_SIZE < totalDiaries) loadDiaries(currentPage + 1); });
+
+    $$("[data-pet-mood-option]").forEach(button => button.addEventListener("click", () => {
+      petAnalysisRequestId++;
+      petAnalyzing = false;
+      if (petAiConsent) setPetAiStatus("enabled");
+      setPetMood(button.dataset.petMoodOption, { animate: true });
+    }));
+    $("#pet-consent-checkbox").addEventListener("change", event => {
+      $("#enable-pet-ai").disabled = !event.target.checked;
+    });
+    $("#enable-pet-ai").addEventListener("click", () => {
+      if (!$("#pet-consent-checkbox").checked) return;
+      setPetConsent(true);
+      showToast("AI 情绪分析已启用");
+    });
+    $("#revoke-pet-ai").addEventListener("click", () => {
+      setPetConsent(false);
+      showToast("已撤回 AI 情绪分析同意");
+    });
+    $("#share-today-btn").addEventListener("click", () => {
+      shareDiaryToday();
+    });
+    $("#open-pet-privacy").addEventListener("click", event => {
+      event.preventDefault();
+      const dialog = $("#pet-privacy-dialog");
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    });
+    $("#close-pet-privacy").addEventListener("click", () => $("#pet-privacy-dialog").close());
+    $("#privacy-understood").addEventListener("click", () => $("#pet-privacy-dialog").close());
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        const blinkImage = $("#pet-blink-image");
+        if (blinkImage) blinkImage.style.animationPlayState = "paused";
+      } else {
+        schedulePetBlink();
+      }
+    });
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").addEventListener?.("change", schedulePetBlink);
+
+    function updateMoodChoices() {
+      const selected = $("#diary-mood").value;
+      $$(".mood-choice").forEach(button => {
+        const active = button.dataset.mood === selected;
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+    $$(".mood-choice").forEach(button => button.addEventListener("click", () => {
+      const select = $("#diary-mood");
+      select.value = select.value === button.dataset.mood ? "" : button.dataset.mood;
+      updateMoodChoices();
+    }));
+    $("#diary-mood").addEventListener("change", updateMoodChoices);
+    $("#diary-content").addEventListener("focus", event => {
+      const textarea = event.currentTarget;
+      if (!viewingOnly && !textarea.value) {
+        textarea.value = DIARY_INDENT;
+        textarea.setSelectionRange(DIARY_INDENT.length, DIARY_INDENT.length);
+      }
+    });
+    $("#diary-content").addEventListener("keydown", event => {
+      if (event.key !== "Enter" || event.isComposing || viewingOnly) return;
+      event.preventDefault();
+      const textarea = event.currentTarget;
+      textarea.setRangeText(
+        `\n${DIARY_INDENT}`,
+        textarea.selectionStart,
+        textarea.selectionEnd,
+        "end"
+      );
+    });
+
+    // 通过事件代理处理日记卡片上的阅读、编辑、删除按钮。
+    document.addEventListener("click", event => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+      if (action === "reconnect") { checkConnection(); return; }
+      if (action === "search") { searchDiaries(); return; }
+      handleCardAction(action, id ? Number(id) : undefined);
+    });
+
+    $("#diary-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      if (viewingOnly) return;
+      const title = $("#diary-title").value.trim();
+      const content = formatDiaryParagraphs($("#diary-content").value);
+      const mood = $("#diary-mood").value;
+      if (!title) {
+        showToast("请填写日记标题");
+        $("#diary-title").focus();
+        return;
+      }
+      const payload = { title, content, mood };
+      const saveButton = $("#save-diary-btn");
+      const wasEditing = editingDiaryId !== null;
+      saveButton.disabled = true;
+      saveButton.textContent = "正在保存…";
+      try {
+        if (editingDiaryId !== null) {
+          await apiRequest(`/api/diaries/${editingDiaryId}`, {
+            method: "PUT", body: JSON.stringify(payload)
+          });
+          showToast("修改已保存");
+        } else {
+          await apiRequest("/api/diaries", {
+            method: "POST", body: JSON.stringify(payload)
+          });
+          // POST 保存成功即切换到已写状态，不依赖手机时间；后端按服务器时间认定“今天”。
+          todayStatus = { written: true, today_id: null };
+          renderTodayStatus();
+          showToast("日记已保存");
+        }
+        closeModal();
+        await refreshAfterDiaryChange();
+        renderPetShareButton();
+      } catch (error) {
+        showToast(error.message);
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = wasEditing ? "保存修改" : "保存日记";
+      }
+    });
+
+    // 三种视觉风格可随时切换，并保存在当前浏览器中。
+    function applyTheme(theme) {
+      if (!["dark", "warm", "minimal"].includes(theme)) theme = "warm";
+      document.body.dataset.theme = theme;
+      $$("[data-theme-choice]").forEach(button => button.classList.toggle("active", button.dataset.themeChoice === theme));
+      const themeColor = theme === "dark" ? "#050505" : theme === "minimal" ? "#eee0c4" : "#fff4dc";
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) themeMeta.setAttribute("content", themeColor);
+      try { localStorage.setItem("xiaopeng-diary-theme", theme); } catch (_) {}
+    }
+    $$("[data-theme-choice]").forEach(button => button.addEventListener("click", () => applyTheme(button.dataset.themeChoice)));
+    $("#theme-toggle").addEventListener("click", () => {
+      const themes = ["warm", "dark", "minimal"];
+      const current = themes.indexOf(document.body.dataset.theme);
+      applyTheme(themes[(current + 1) % themes.length]);
+    });
+
+    // 首页日期显示在页面最上方第一行。
+    function homeDateLabel() {
+      const date = new Date();
+      const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+      return `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日 · ${weekdays[date.getDay()]}`;
+    }
+    $("#page-eyebrow").textContent = homeDateLabel();
+    try {
+      const savedTheme = localStorage.getItem("xiaopeng-diary-theme");
+      if (["dark", "warm", "minimal"].includes(savedTheme)) applyTheme(savedTheme);
+    } catch (_) {}
+
+    petAiConsent = readPetConsent();
+    preloadPetAssets();
+    renderPetConsent();
+    renderPetShareButton();
+
+    // 页面打开后读取日记列表与后端今日状态；“今天”以服务器时间为准。
+    loadDiaries(1);
+    loadTodayStatus();
+  </script>
+</body>
+</html>

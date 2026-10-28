@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "pet_id": "deepseek_whale_girl",
+  "display_name": "鲸鱼娘",
+  "pack_version": "1.2.0",
+  "canvas_size": [512, 512],
+  "default_mood": "calm",
+  "assets": {
+    "happy": {
+      "path": "happy.png",
+      "label": "开心"
+    },
+    "calm": {
+      "path": "calm.png",
+      "blink_path": "calm-blink.png",
+      "label": "平静"
+    },
+    "sad": {
+      "path": "sad.png",
+      "label": "难过"
+    },
+    "angry": {
+      "path": "angry.png",
+      "label": "生气"
+    },
+    "excited": {
+      "path": "excited.png",
+      "label": "兴奋"
+    },
+    "tired": {
+      "path": "tired.png",
+      "label": "疲惫"
+    }
+  },
+  "motion": {
+    "breathing": "css-loop",
+    "blink": {
+      "mood": "calm",
+      "interval_ms": [4200, 7200],
+      "duration_ms": 150
+    },
+    "reduced_motion": true
+  }
+}
