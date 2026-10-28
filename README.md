@@ -6,7 +6,7 @@ An online diary embedded with an AI pet. You can record your diaries, preserve d
 
 # 小朋日记（手机端网页版日记应用 + AI 宠物）
 
-前后端已按交接指南对接完成。前端为「鲸鱼娘版 v3」，后端为 C++17 + Crow + SQLite3 + libcurl 单文件服务。
+前后端已按交接指南对接完成。前端为「小朋宠物版 v3」，后端为 C++17 + Crow + SQLite3 + libcurl 单文件服务。
 
 ## 目录结构
 
@@ -14,7 +14,7 @@ An online diary embedded with an AI pet. You can record your diaries, preserve d
 main.cpp                后端（单文件）
 crow_all.h              Crow 头文件
 static/index.html       前端页面
-static/assets/pets/     鲸鱼娘表情图（开心/平静/难过/生气/兴奋/疲惫 + 平静眨眼）
+static/assets/pets/     小朋宠物表情图（开心/平静/难过/生气/兴奋/疲惫 + 平静眨眼）
 ```
 
 ## 编译与运行
@@ -42,7 +42,7 @@ DEEPSEEK_API_KEY=sk-xxx ./xiaopeng_server
 
 ## 前端 AI 流程
 
-政策弹窗 → 勾选同意 → 点「同意并启用」→ 写完今天的日记后点「分享今天给鲸鱼娘」→ 后端读取当天一篇日记调用 DeepSeek → 宠物切换表情并气泡回复。刷新页面时由 `/api/status` 与 `/api/pet/today` 恢复状态。
+政策弹窗 → 勾选同意 → 点「同意并启用」→ 写完今天的日记后点「分享今天给小朋宠物」→ 后端读取当天一篇日记调用 DeepSeek → 宠物切换表情并气泡回复。刷新页面时由 `/api/status` 与 `/api/pet/today` 恢复状态。
 
 ## 宠物人设与 LLM 配置
 

@@ -337,7 +337,7 @@
     }
 
     /* =========================
-       高饱和主题与鲸鱼娘宠物
+       高饱和主题与小朋宠物
        ========================= */
     body[data-theme="warm"] {
       --bg: #fff4dc;
@@ -1120,12 +1120,12 @@
         </div>
         <section class="home-pet-section" aria-labelledby="pet-section-title">
           <div class="section-head">
-            <div><h2 id="pet-section-title">鲸鱼娘的心情</h2><p>她会陪你记录，也会回应你今天的心情。</p></div>
+            <div><h2 id="pet-section-title">小朋宠物的心情</h2><p>她会陪你记录，也会回应你今天的心情。</p></div>
           </div>
           <div class="pet-console" id="home-pet" data-pet-state="waiting" data-pet-mood="calm">
             <div class="pet-stage">
               <div class="pet-avatar" id="pet-avatar">
-                <img class="pet-image" id="pet-image" src="static/assets/pets/calm.png" alt="鲸鱼娘，平静地陪在主人身边">
+                <img class="pet-image" id="pet-image" src="static/assets/pets/calm.png" alt="小朋宠物，平静地陪在主人身边">
                 <img class="pet-image pet-image-blink" id="pet-blink-image" src="static/assets/pets/calm-blink.png" alt="" aria-hidden="true">
               </div>
               <div class="pet-mood-badge"><span class="pet-mood-dot" aria-hidden="true"></span><strong id="pet-mood-label">平静</strong></div>
@@ -1135,7 +1135,7 @@
                 <span class="pet-bubble-label">此刻想对你说</span>
                 <p class="pet-message" id="pet-message" aria-live="polite">我在呢，今天想记下什么？</p>
               </div>
-              <div class="pet-mood-actions" aria-label="切换鲸鱼娘的情绪">
+              <div class="pet-mood-actions" aria-label="切换小朋宠物的情绪">
                 <button type="button" class="pet-mood-btn" data-pet-mood-option="happy" aria-pressed="false">开心</button>
                 <button type="button" class="pet-mood-btn" data-pet-mood-option="calm" aria-pressed="true">平静</button>
                 <button type="button" class="pet-mood-btn" data-pet-mood-option="sad" aria-pressed="false">难过</button>
@@ -1144,7 +1144,7 @@
                 <button type="button" class="pet-mood-btn" data-pet-mood-option="tired" aria-pressed="false">疲惫</button>
               </div>
               <div class="pet-ai-card" id="pet-ai-consent-card">
-                <p class="pet-ai-copy">启用后，只有你点“分享今天给鲸鱼娘”时，今天这一篇日记才会发送给 AI 服务分析情绪，用来决定她的表情和一句话回应。</p>
+                <p class="pet-ai-copy">启用后，只有你点“分享今天给小朋宠物”时，今天这一篇日记才会发送给 AI 服务分析情绪，用来决定她的表情和一句话回应。</p>
                 <label class="pet-consent-check">
                   <input type="checkbox" id="pet-consent-checkbox">
                   <span>我已阅读并同意<a class="pet-text-button" id="open-pet-privacy" href="#pet-privacy-dialog">AI 情绪分析隐私说明</a></span>
@@ -1155,11 +1155,11 @@
               </div>
               <div class="pet-ai-status" id="pet-ai-status" hidden>
                 <span class="pet-ai-pulse" aria-hidden="true"></span>
-                <span id="pet-ai-status-text">鲸鱼娘正在听你的心情…</span>
+                <span id="pet-ai-status-text">小朋宠物正在听你的心情…</span>
                 <button type="button" class="pet-text-button" id="revoke-pet-ai" hidden>撤回同意</button>
               </div>
               <div class="pet-ai-actions" id="pet-share-actions" hidden>
-                <button type="button" class="primary-btn" id="share-today-btn">分享今天给鲸鱼娘</button>
+                <button type="button" class="primary-btn" id="share-today-btn">分享今天给小朋宠物</button>
               </div>
             </div>
           </div>
@@ -1308,10 +1308,10 @@
         <button type="button" class="close-btn" id="close-pet-privacy" aria-label="关闭隐私说明">×</button>
       </div>
       <div class="privacy-copy">
-        <p><strong>发送内容：</strong>只有在你明确同意并点击“分享今天给鲸鱼娘”后，今天这一篇日记的标题和正文才会发送到已配置的 DeepSeek API 用于情绪分析；历史日记不会被上传。</p>
-        <p><strong>使用目的：</strong>分析结果仅用于选择鲸鱼娘的情绪形象，并生成一句不超过 30 字的回应，不会写入你的日记正文。</p>
+        <p><strong>发送内容：</strong>只有在你明确同意并点击“分享今天给小朋宠物”后，今天这一篇日记的标题和正文才会发送到已配置的 DeepSeek API 用于情绪分析；历史日记不会被上传。</p>
+        <p><strong>使用目的：</strong>分析结果仅用于选择小朋宠物的情绪形象，并生成一句不超过 30 字的回应，不会写入你的日记正文。</p>
         <p><strong>数据边界：</strong>API Key 只保存在后端环境变量 <code>DEEPSEEK_API_KEY</code> 中，不会发送到浏览器。请不要在日记里填写密码、银行卡号等敏感信息。</p>
-        <p><strong>你的选择：</strong>不启用 AI 时，日记功能仍可正常使用，你也可以随时手动切换鲸鱼娘的情绪。你可以在当前浏览器中撤回同意，撤回后不会再发送新的分析请求。</p>
+        <p><strong>你的选择：</strong>不启用 AI 时，日记功能仍可正常使用，你也可以随时手动切换小朋宠物的情绪。你可以在当前浏览器中撤回同意，撤回后不会再发送新的分析请求。</p>
       </div>
       <div class="privacy-actions">
         <button type="button" class="primary-btn" id="privacy-understood">我知道了</button>
@@ -1597,7 +1597,7 @@
       );
       $("#pet-mood-label").textContent = config.label;
       image.src = config.image;
-      image.alt = `鲸鱼娘，${config.label}地陪在主人身边`;
+      image.alt = `小朋宠物，${config.label}地陪在主人身边`;
       blinkImage.src = config.blinkImage || config.image;
       blinkImage.style.opacity = "";
 
@@ -1648,7 +1648,7 @@
       if (pulse) pulse.hidden = mode !== "loading";
       if (revoke) revoke.hidden = !petAiConsent || mode === "loading";
       $("#pet-ai-status-text").textContent = text || (
-        mode === "loading" ? "鲸鱼娘正在听你的心情…" :
+        mode === "loading" ? "小朋宠物正在听你的心情…" :
         mode === "error" ? "这次没有听清，已保留手动的情绪切换" :
         "AI 情绪分析已启用"
       );
@@ -1705,7 +1705,7 @@
       const shouldShow = petAiConsent && todayStatus.written === true && !petSharedToday;
       actions.hidden = !shouldShow;
       button.disabled = petAnalyzing;
-      button.textContent = petAnalyzing ? "正在听你的心情…" : "分享今天给鲸鱼娘";
+      button.textContent = petAnalyzing ? "正在听你的心情…" : "分享今天给小朋宠物";
     }
 
     async function shareDiaryToday() {
@@ -1782,7 +1782,7 @@
         setPetMood(todayStatus.written ? "happy" : "calm", {
           message: todayStatus.written
             ? (petAiConsent
-                ? "今天的日记已经收好啦，把今天分享给鲸鱼娘听听她的回应吧。"
+                ? "今天的日记已经收好啦，把今天分享给小朋宠物听听她的回应吧。"
                 : "今天的日记已经收好啦，我还在你身边。")
             : "我在呢，今天想记下什么？",
           animate: false
