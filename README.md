@@ -1,3 +1,9 @@
+# -XiaoPeng_Dairy
+
+An online diary embedded with an AI pet. You can record your diaries, preserve daily stories, and even share them with your adorable pet.
+
+---
+
 # 小朋日记（手机端网页版日记应用 + AI 宠物）
 
 前后端已按交接指南对接完成。前端为「鲸鱼娘版 v3」，后端为 C++17 + Crow + SQLite3 + libcurl 单文件服务。
@@ -5,10 +11,10 @@
 ## 目录结构
 
 ```text
-main.cpp         后端（单文件）
-crow_all.h       Crow 头文件
-static/index.html   前端页面
-static/assets/pets/ 鲸鱼娘表情图（开心/平静/难过/生气/兴奋/疲惫 + 平静眨眼）
+main.cpp                后端（单文件）
+crow_all.h              Crow 头文件
+static/index.html       前端页面
+static/assets/pets/     鲸鱼娘表情图（开心/平静/难过/生气/兴奋/疲惫 + 平静眨眼）
 ```
 
 ## 编译与运行
