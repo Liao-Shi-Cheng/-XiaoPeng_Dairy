@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#fff4dc">
-  <title>小朋日记 · 把日子慢慢收好</title>
+  <title>小朋日记 · 把故事，刻在云上</title>
   <style>
     /* =========================
        小朋日记：基础样式
@@ -1046,6 +1046,32 @@
         transition: none;
       }
     }
+    /* ===== 修改：首页标语与日期、只读查看、领养引导 ===== */
+    #page-eyebrow.home-date { font-size: clamp(19px, 3vw, 28px); letter-spacing: .02em; color: var(--text); text-transform: none; font-weight: 800; }
+    #page-title.home-tagline { font-size: clamp(18px, 2.4vw, 24px); letter-spacing: -.01em; margin-top: 6px; }
+    .modal-backdrop.view-mode .modal-actions { display: none; }
+    .modal-backdrop.view-mode .form-field input[readonly],
+    .modal-backdrop.view-mode .form-field textarea[readonly],
+    .modal-backdrop.view-mode .form-field select:disabled,
+    .modal-backdrop.view-mode .mood-choice:disabled {
+      opacity: 1;
+      color: var(--text);
+      -webkit-text-fill-color: var(--text);
+      cursor: default;
+    }
+    .onboard-overlay { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 18px; background: var(--bg); }
+    .onboard-overlay[hidden] { display: none; }
+    .onboard-card { width: min(100%, 460px); background: var(--surface-solid); border: 1px solid var(--line); border-radius: 28px; padding: 30px 28px; box-shadow: var(--shadow); }
+    body[data-theme="minimal"] .onboard-card { border-radius: 12px; }
+    .onboard-head h2 { margin: 10px 0 0; font-size: 24px; letter-spacing: -.03em; }
+    .onboard-head p { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .onboard-body { margin-top: 24px; display: grid; gap: 14px; }
+    .onboard-step { display: grid; gap: 10px; }
+    .onboard-step label { font-size: 12px; font-weight: 800; }
+    .onboard-step input { width: 100%; border: 1px solid var(--line); border-radius: 13px; padding: 13px 14px; background: var(--bg); color: var(--text); font-size: 15px; outline: none; }
+    .onboard-step input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    .onboard-pet-preview { display: grid; place-items: center; padding: 4px 0 2px; }
+    .onboard-pet-preview img { width: 96px; height: 96px; object-fit: contain; filter: drop-shadow(0 10px 12px rgba(13,31,64,.18)); }
   </style>
 </head>
 <body data-theme="warm" data-emotion-endpoint="/api/pet/share">
@@ -1097,7 +1123,7 @@
       <header class="topbar">
         <div>
           <div class="eyebrow" id="page-eyebrow">2026 · 今日</div>
-          <h1 id="page-title">把日子慢慢收好。</h1>
+          <h1 id="page-title">把故事，刻在云上</h1>
         </div>
         <div class="top-actions">
           <button class="icon-btn" id="theme-toggle" title="切换风格（点击循环切换）" aria-label="切换风格（点击循环切换）">◐</button>
@@ -1120,31 +1146,23 @@
         </div>
         <section class="home-pet-section" aria-labelledby="pet-section-title">
           <div class="section-head">
-            <div><h2 id="pet-section-title">小朋宠物的心情</h2><p>她会陪你记录，也会回应你今天的心情。</p></div>
+            <div><h2 id="pet-section-title">宠物的心情</h2><p>它会陪你记录，也会回应你今天的心情。</p></div>
           </div>
           <div class="pet-console" id="home-pet" data-pet-state="waiting" data-pet-mood="calm">
             <div class="pet-stage">
               <div class="pet-avatar" id="pet-avatar">
-                <img class="pet-image" id="pet-image" src="static/assets/pets/calm.png" alt="小朋宠物，平静地陪在主人身边">
+                <img class="pet-image" id="pet-image" src="static/assets/pets/calm.png" alt="宠物，平静地陪在主人身边">
                 <img class="pet-image pet-image-blink" id="pet-blink-image" src="static/assets/pets/calm-blink.png" alt="" aria-hidden="true">
               </div>
-              <div class="pet-mood-badge"><span class="pet-mood-dot" aria-hidden="true"></span><strong id="pet-mood-label">平静</strong></div>
+              <div class="pet-mood-badge"><span class="pet-mood-dot" aria-hidden="true"></span><strong id="pet-mood-label">默认</strong></div>
             </div>
             <div class="pet-content">
               <div class="pet-bubble">
                 <span class="pet-bubble-label">此刻想对你说</span>
                 <p class="pet-message" id="pet-message" aria-live="polite">我在呢，今天想记下什么？</p>
               </div>
-              <div class="pet-mood-actions" aria-label="切换小朋宠物的情绪">
-                <button type="button" class="pet-mood-btn" data-pet-mood-option="happy" aria-pressed="false">开心</button>
-                <button type="button" class="pet-mood-btn" data-pet-mood-option="calm" aria-pressed="true">平静</button>
-                <button type="button" class="pet-mood-btn" data-pet-mood-option="sad" aria-pressed="false">难过</button>
-                <button type="button" class="pet-mood-btn" data-pet-mood-option="angry" aria-pressed="false">生气</button>
-                <button type="button" class="pet-mood-btn" data-pet-mood-option="excited" aria-pressed="false">兴奋</button>
-                <button type="button" class="pet-mood-btn" data-pet-mood-option="tired" aria-pressed="false">疲惫</button>
-              </div>
               <div class="pet-ai-card" id="pet-ai-consent-card">
-                <p class="pet-ai-copy">启用后，只有你点“分享今天给小朋宠物”时，今天这一篇日记才会发送给 AI 服务分析情绪，用来决定她的表情和一句话回应。</p>
+                <p class="pet-ai-copy" id="pet-ai-copy">启用后，只有你点“分享今天给宠物”时，今天这一篇日记才会发送给 AI 服务分析情绪，用来决定它的表情和一句话回应。</p>
                 <label class="pet-consent-check">
                   <input type="checkbox" id="pet-consent-checkbox">
                   <span>我已阅读并同意<a class="pet-text-button" id="open-pet-privacy" href="#pet-privacy-dialog">AI 情绪分析隐私说明</a></span>
@@ -1155,11 +1173,11 @@
               </div>
               <div class="pet-ai-status" id="pet-ai-status" hidden>
                 <span class="pet-ai-pulse" aria-hidden="true"></span>
-                <span id="pet-ai-status-text">小朋宠物正在听你的心情…</span>
+                <span id="pet-ai-status-text">宠物正在听你的心情…</span>
                 <button type="button" class="pet-text-button" id="revoke-pet-ai" hidden>撤回同意</button>
               </div>
               <div class="pet-ai-actions" id="pet-share-actions" hidden>
-                <button type="button" class="primary-btn" id="share-today-btn">分享今天给小朋宠物</button>
+                <button type="button" class="primary-btn" id="share-today-btn">分享今天给宠物</button>
               </div>
             </div>
           </div>
@@ -1204,7 +1222,7 @@
           <section class="profile-card" aria-label="个人资料">
             <div class="profile-intro">
               <div class="profile-avatar" role="img" aria-label="默认头像">🌿</div>
-              <div><div class="profile-nickname">小朋</div><div class="profile-caption">慢慢生活，认真记录。<br>每一天都值得被珍藏。</div></div>
+              <div><div class="profile-nickname" id="profile-nickname">尚未设置</div><div class="profile-caption">慢慢生活，认真记录。<br>每一天都值得被珍藏。</div></div>
             </div>
             <div class="section-head" style="margin-top:28px"><div><h2>我的小档案</h2><p>记录生活，也照顾好自己。</p></div></div>
             <p class="profile-caption">记录日常，留住心情。</p>
@@ -1308,16 +1326,60 @@
         <button type="button" class="close-btn" id="close-pet-privacy" aria-label="关闭隐私说明">×</button>
       </div>
       <div class="privacy-copy">
-        <p><strong>发送内容：</strong>只有在你明确同意并点击“分享今天给小朋宠物”后，今天这一篇日记的标题和正文才会发送到已配置的 DeepSeek API 用于情绪分析；历史日记不会被上传。</p>
-        <p><strong>使用目的：</strong>分析结果仅用于选择小朋宠物的情绪形象，并生成一句不超过 30 字的回应，不会写入你的日记正文。</p>
+        <p><strong>发送内容：</strong>只有在你明确同意并点击“分享今天给你的宠物”后，今天这一篇日记的标题和正文才会发送到已配置的 DeepSeek API 用于情绪分析；历史日记不会被上传。</p>
+        <p><strong>使用目的：</strong>分析结果仅用于选择你宠物的情绪形象，并生成一句不超过 30 字的回应，不会写入你的日记正文。</p>
         <p><strong>数据边界：</strong>API Key 只保存在后端环境变量 <code>DEEPSEEK_API_KEY</code> 中，不会发送到浏览器。请不要在日记里填写密码、银行卡号等敏感信息。</p>
-        <p><strong>你的选择：</strong>不启用 AI 时，日记功能仍可正常使用，你也可以随时手动切换小朋宠物的情绪。你可以在当前浏览器中撤回同意，撤回后不会再发送新的分析请求。</p>
+        <p><strong>你的选择：</strong>不启用 AI 时，日记功能仍可正常使用，宠物会保持默认状态。你可以在当前浏览器中撤回同意，撤回后不会再发送新的分析请求。</p>
       </div>
       <div class="privacy-actions">
         <button type="button" class="primary-btn" id="privacy-understood">我知道了</button>
       </div>
     </div>
   </dialog>
+  <dialog class="privacy-dialog" id="edit-rule-dialog" aria-labelledby="edit-rule-title">
+    <div class="privacy-inner">
+      <div class="privacy-head">
+        <div>
+          <div class="eyebrow">DAILY RULE</div>
+          <h2 id="edit-rule-title">仅当天可修改</h2>
+        </div>
+        <button type="button" class="close-btn" id="close-edit-rule" aria-label="关闭说明">×</button>
+      </div>
+      <div class="privacy-copy">
+        <p>为了保留那一天最真实的样子，<strong>每篇日记只在创建的当天可以修改</strong>；过了当天，就只能回看、不能再修改了。</p>
+        <p>所以写完后如果还想改一改，记得在当天完成哦。</p>
+        <label class="pet-consent-check" style="margin-top:14px">
+          <input type="checkbox" id="edit-rule-dismiss-checkbox">
+          <span>不再弹出这个说明</span>
+        </label>
+      </div>
+      <div class="privacy-actions">
+        <button type="button" class="primary-btn" id="edit-rule-understood">知道了</button>
+      </div>
+    </div>
+  </dialog>
+  <div class="onboard-overlay" id="onboard-overlay" hidden>
+    <div class="onboard-card">
+      <div class="onboard-head">
+        <div class="eyebrow">WELCOME · ADOPT A PET</div>
+        <h2 id="onboard-title">先给你的宠物起个名字</h2>
+        <p id="onboard-subtitle">它会在你的首页陪着你，也会回应你今天的心情。</p>
+      </div>
+      <div class="onboard-body">
+        <div class="onboard-step" id="onboard-step-pet">
+          <div class="onboard-pet-preview"><img src="static/assets/pets/calm.png" alt="你的宠物"></div>
+          <label for="onboard-pet-name">宠物名字</label>
+          <input id="onboard-pet-name" maxlength="20" placeholder="给它起个名字吧">
+          <button type="button" class="primary-btn" id="onboard-next">下一步</button>
+        </div>
+        <div class="onboard-step" id="onboard-step-nick" hidden>
+          <label for="onboard-nickname">你的昵称</label>
+          <input id="onboard-nickname" maxlength="20" placeholder="给自己取个昵称">
+          <button type="button" class="primary-btn" id="onboard-finish">进入首页</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -1325,12 +1387,43 @@
 
     /* =========================
        后端连接配置
-       - 通过 file:// 双击打开时，使用文档里的完整后端地址。
-       - 如果页面由后端托管在 localhost:18080，则使用相对路径。
+       - 如果页面由后端托管（同源 18080），使用相对路径，手机/电脑都能用。
+       - 如果页面由开发服务器（5173/5500 等）或 file:// 打开，则根据当前主机推导
+         后端地址，而不是写死 localhost（在手机上 localhost 指的是手机自己）。
+       - 可通过 localStorage 的 xiaopeng-api-base 覆盖后端地址，便于部署到
+         独立静态站点或内网 IP。
        ========================= */
-    const API_BASE = (location.protocol === "file:" || location.port === "5173" || location.port === "5500")
-      ? "http://localhost:18080"
-      : "";
+    const BACKEND_PORT = "18080";
+    const REQUEST_TIMEOUT_MS = 15000;
+    const DEV_PORTS = ["5173", "5500", "3000", "8000"];
+
+    function resolveApiBase() {
+      try {
+        const saved = localStorage.getItem("xiaopeng-api-base");
+        if (saved) return saved.replace(/\/+$/, "");
+      } catch (_) {}
+
+      // file:// 双击打开：手机上没有可推导的主机，先回退到 localhost，
+      // 需要时用 localStorage 的 xiaopeng-api-base 指向电脑的内网 IP。
+      if (location.protocol === "file:") {
+        const host = location.hostname || "localhost";
+        return `http://${host}:${BACKEND_PORT}`;
+      }
+
+      // 同源部署：页面由后端自己托管，直接用相对路径最稳。
+      if (!location.port || location.port === BACKEND_PORT) return "";
+
+      // 开发服务器：优先用当前访问的主机名，手机访问时才会指向电脑。
+      if (DEV_PORTS.includes(location.port)) {
+        const host = location.hostname || "localhost";
+        return `http://${host}:${BACKEND_PORT}`;
+      }
+
+      // 其它静态托管：保持相对路径，避免把请求误发到当前站点。
+      return "";
+    }
+
+    const API_BASE = resolveApiBase();
     // 后端实际路由不同时，只需修改 body 上的 data-emotion-endpoint。
     const EMOTION_ANALYSIS_PATH = document.body.dataset.emotionEndpoint || "/api/pet/share";
     const PET_AI_CONSENT_KEY = "xiaopeng-pet-ai-consent-v1";
@@ -1415,23 +1508,42 @@
     let toastTimer = null;
     // 今日状态完全由后端决定，不使用手机本地日期判断是否已写。
     let todayStatus = { written: false, today_id: null };
+    let profile = { onboarded: false, pet_name: "", nickname: "", edit_rule_hint_seen: false };
 
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
-    // 统一请求后端：自动处理 JSON、HTTP 错误和后端未启动的情况。
+    function petName() {
+      return String(profile.pet_name || "").trim() || "宠物";
+    }
+
+    // 统一请求后端：自动处理 JSON、HTTP 错误、超时和后端未启动的情况。
     async function apiRequest(path, options = {}) {
+      const controller = new AbortController();
+      const timeoutMs = Number(options.timeout) > 0 ? Number(options.timeout) : REQUEST_TIMEOUT_MS;
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
       let response;
       try {
         response = await fetch(API_BASE + path, {
           ...options,
+          signal: controller.signal,
           headers: {
             ...(options.body ? { "Content-Type": "application/json" } : {}),
             ...(options.headers || {})
           }
         });
       } catch (error) {
-        throw new Error("连接不上后端。请确认后端已启动在 http://localhost:18080，然后点击“重新连接”。");
+        if (error && error.name === "AbortError") {
+          const backendLabel = API_BASE || `${location.protocol}//${location.host}`;
+          throw new Error(`请求超时（${Math.round(timeoutMs / 1000)} 秒未响应）。请确认后端正在运行，且手机与电脑在同一网络、地址为 ${backendLabel}。`);
+        }
+        let reason = "连接不上后端。请确认后端已启动，然后点击“重新连接”。";
+        if (/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) && API_BASE.includes("localhost")) {
+          reason += " 手机上 localhost 指向手机自己，请用电脑的内网 IP 打开页面，或设置 xiaopeng-api-base。";
+        }
+        throw new Error(reason);
+      } finally {
+        clearTimeout(timer);
       }
 
       const contentType = response.headers.get("content-type") || "";
@@ -1457,6 +1569,45 @@
       toast.classList.add("show");
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    function applyProfileToUI() {
+      $("#profile-nickname").textContent = profile.nickname || "尚未设置";
+      $("#pet-section-title").textContent = petName() + "的心情";
+      $("#pet-ai-copy").textContent = "启用后，只有你点“分享今天给" + petName() + "”时，今天这一篇日记才会发送给 AI 服务分析情绪，用来决定它的表情和一句话回应。";
+      renderPetConsent();
+      renderPetShareButton();
+    }
+
+    function showOnboarding() {
+      $("#onboard-overlay").hidden = false;
+      $("#onboard-step-pet").hidden = false;
+      $("#onboard-step-nick").hidden = true;
+      $("#onboard-title").textContent = "先给你的宠物起个名字";
+      $("#onboard-subtitle").textContent = "它会在你的首页陪着你，也会回应你今天的心情。";
+    }
+
+    async function ensureOnboarded() {
+      try {
+        profile = await apiRequest("/api/profile");
+      } catch (_) {
+        profile = { onboarded: false, pet_name: "", nickname: "", edit_rule_hint_seen: false };
+      }
+      applyProfileToUI();
+      if (!profile.onboarded) {
+        showOnboarding();
+      } else {
+        $("#onboard-overlay").hidden = true;
+      }
+      return profile;
+    }
+
+    function showEditRuleDialog() {
+      const dialog = $("#edit-rule-dialog");
+      if (!dialog) return;
+      $("#edit-rule-dismiss-checkbox").checked = false;
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
     }
 
     function setConnection(ok, message) {
@@ -1520,6 +1671,7 @@
     function diaryCard(diary) {
       const mood = diary.mood || "";
       const content = diary.content || "这篇日记还没有写正文。";
+      const editable = diary.editable === true;
       return `
         <article class="diary-card">
           <div class="diary-top">
@@ -1531,7 +1683,7 @@
           <div class="diary-footer">
             <button class="read-more" data-action="view" data-id="${Number(diary.id)}">阅读日记 ↗</button>
             <div class="card-actions">
-              <button class="small-action" data-action="edit" data-id="${Number(diary.id)}">编辑</button>
+              ${editable ? `<button class="small-action" data-action="edit" data-id="${Number(diary.id)}">编辑</button>` : ""}
               <button class="small-action" data-action="delete" data-id="${Number(diary.id)}">删除</button>
             </div>
           </div>
@@ -1597,15 +1749,12 @@
       );
       $("#pet-mood-label").textContent = config.label;
       image.src = config.image;
-      image.alt = `小朋宠物，${config.label}地陪在主人身边`;
+      image.alt = `${petName()}，${config.label}地陪在主人身边`;
       blinkImage.src = config.blinkImage || config.image;
       blinkImage.style.opacity = "";
 
       const message = String(options.message || config.message).trim();
       $("#pet-message").textContent = message || config.message;
-      $$("[data-pet-mood-option]").forEach(button => {
-        button.setAttribute("aria-pressed", String(button.dataset.petMoodOption === normalized));
-      });
 
       clearTimeout(petMoodAnimationTimer);
       if (options.animate !== false && !prefersReducedMotion()) {
@@ -1616,6 +1765,24 @@
       }
       schedulePetBlink();
       return normalized;
+    }
+
+    function setPetDefaultState() {
+      const pet = $("#home-pet");
+      const image = $("#pet-image");
+      const blinkImage = $("#pet-blink-image");
+      if (!pet || !image) return;
+      pet.dataset.petMood = "calm";
+      pet.dataset.petState = todayStatus.written ? "written" : "waiting";
+      pet.dataset.petIntensity = "1";
+      $("#pet-mood-label").textContent = "默认";
+      image.src = "static/assets/pets/calm.png";
+      image.alt = `${petName()}，默认状态`;
+      blinkImage.src = "static/assets/pets/calm-blink.png";
+      $("#pet-message").textContent = todayStatus.written
+        ? "今天的日记已经收好啦。"
+        : "我在呢，今天想记下什么？";
+      schedulePetBlink();
     }
 
     function preloadPetAssets() {
@@ -1648,8 +1815,8 @@
       if (pulse) pulse.hidden = mode !== "loading";
       if (revoke) revoke.hidden = !petAiConsent || mode === "loading";
       $("#pet-ai-status-text").textContent = text || (
-        mode === "loading" ? "小朋宠物正在听你的心情…" :
-        mode === "error" ? "这次没有听清，已保留手动的情绪切换" :
+        mode === "loading" ? petName() + "正在听你的心情…" :
+        mode === "error" ? "这次没有听清，请稍后再试" :
         "AI 情绪分析已启用"
       );
     }
@@ -1705,7 +1872,7 @@
       const shouldShow = petAiConsent && todayStatus.written === true && !petSharedToday;
       actions.hidden = !shouldShow;
       button.disabled = petAnalyzing;
-      button.textContent = petAnalyzing ? "正在听你的心情…" : "分享今天给小朋宠物";
+      button.textContent = petAnalyzing ? "正在听你的心情…" : "分享今天给" + petName();
     }
 
     async function shareDiaryToday() {
@@ -1779,14 +1946,7 @@
           intensity: reaction.intensity
         });
       } else {
-        setPetMood(todayStatus.written ? "happy" : "calm", {
-          message: todayStatus.written
-            ? (petAiConsent
-                ? "今天的日记已经收好啦，把今天分享给小朋宠物听听她的回应吧。"
-                : "今天的日记已经收好啦，我还在你身边。")
-            : "我在呢，今天想记下什么？",
-          animate: false
-        });
+        setPetDefaultState();
       }
       renderPetShareButton();
       return todayStatus;
@@ -1810,7 +1970,7 @@
       $$(".view-panel").forEach(panel => panel.classList.toggle("active", panel.id === `view-${view}`));
       $$("[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === view));
       const labels = {
-        home: ["YOUR LITTLE CORNER", "把日子慢慢收好。"],
+        home: ["YOUR LITTLE CORNER", "把故事，刻在云上"],
         diaries: ["YOUR DIARY ARCHIVE", "每一篇，都值得回看。"],
         search: ["FIND YOUR MOMENTS", "找回某个小小的瞬间。"],
         profile: ["MY LITTLE SPACE", "这是属于你自己的小小空间。"],
@@ -1819,6 +1979,8 @@
       };
       $("#page-eyebrow").textContent = view === "home" ? homeDateLabel() : labels[view][0];
       $("#page-title").textContent = labels[view][1];
+      $("#page-eyebrow").classList.toggle("home-date", view === "home");
+      $("#page-title").classList.toggle("home-tagline", view === "home");
       if (view === "diaries") loadDiaries(currentPage);
       if (view === "home") { loadDiaries(1); loadTodayStatus(); }
       if (view === "search") $("#search-keyword").focus({ preventScroll: true });
@@ -1842,10 +2004,13 @@
       $("#diary-form").reset();
       $("#custom-mood").style.display = "none";
       $("#modal-title").textContent = mode === "edit" ? "修改这篇日记" : mode === "view" ? "日记详情" : "写下今天";
-      $("#modal-subtitle").textContent = mode === "edit" ? "有些想法改变了，也可以回来修改。" : mode === "view" ? "好好回看曾经的自己。" : "不需要完美表达，写下真实的感受就好。";
+      $("#modal-subtitle").textContent = mode === "edit"
+        ? "有些想法改变了，也可以回来修改。"
+        : mode === "view"
+          ? ((diary && diary.created_at) ? `记录于 ${formatDate(diary.created_at)}` : "好好回看曾经的自己。")
+          : "不需要完美表达，写下真实的感受就好。";
       $("#save-diary-btn").textContent = mode === "edit" ? "保存修改" : "保存日记";
-      $("#save-diary-btn").style.display = viewingOnly ? "none" : "";
-      $("#cancel-modal").textContent = viewingOnly ? "关闭" : "返回";
+      $("#cancel-modal").textContent = "返回";
       $("#diary-title").value = (diary && diary.title) || "";
       $("#diary-content").value = formatDiaryParagraphs((diary && diary.content) || "");
       const mood = (diary && diary.mood) || "";
@@ -1862,16 +2027,21 @@
       moodSelect.value = mood;
       updateMoodChoices();
       $("#created-at-hint").textContent = (diary && diary.created_at) ? `记录于 ${formatDate(diary.created_at)}` : "写完后会自动记录时间";
-      ["#diary-title", "#diary-content", "#diary-mood", "#custom-mood"].forEach(selector => $(selector).disabled = viewingOnly);
-      $("#diary-modal").classList.toggle("editor-mode", !viewingOnly);
+      $("#diary-title").readOnly = viewingOnly;
+      $("#diary-content").readOnly = viewingOnly;
+      $("#diary-mood").disabled = viewingOnly;
+      $$(".mood-choice").forEach(button => button.disabled = viewingOnly);
+      $("#diary-modal").classList.toggle("editor-mode", true);
+      $("#diary-modal").classList.toggle("view-mode", viewingOnly);
       $("#diary-modal").classList.add("show");
-      document.body.classList.toggle("editor-open", !viewingOnly);
+      document.body.classList.add("editor-open");
       if (!viewingOnly) setTimeout(() => $("#diary-title").focus(), 50);
     }
 
     function closeModal() {
       $("#diary-modal").classList.remove("show");
       $("#diary-modal").classList.remove("editor-mode");
+      $("#diary-modal").classList.remove("view-mode");
       document.body.classList.remove("editor-open");
       editingDiaryId = null;
       viewingOnly = false;
@@ -1903,7 +2073,13 @@
       const diary = await fetchDiary(id);
       if (!diary) return;
       if (action === "view") openModal("view", diary);
-      if (action === "edit") openModal("edit", diary);
+      if (action === "edit") {
+        if (diary.editable !== true) {
+          showToast("这篇日记已过当天，只能回看");
+          return;
+        }
+        openModal("edit", diary);
+      }
     }
 
     async function checkConnection() {
@@ -2061,12 +2237,6 @@
     $("#prev-page").addEventListener("click", () => { if (currentPage > 1) loadDiaries(currentPage - 1); });
     $("#next-page").addEventListener("click", () => { if (currentPage * PAGE_SIZE < totalDiaries) loadDiaries(currentPage + 1); });
 
-    $$("[data-pet-mood-option]").forEach(button => button.addEventListener("click", () => {
-      petAnalysisRequestId++;
-      petAnalyzing = false;
-      if (petAiConsent) setPetAiStatus("enabled");
-      setPetMood(button.dataset.petMoodOption, { animate: true });
-    }));
     $("#pet-consent-checkbox").addEventListener("change", event => {
       $("#enable-pet-ai").disabled = !event.target.checked;
     });
@@ -2090,6 +2260,60 @@
     });
     $("#close-pet-privacy").addEventListener("click", () => $("#pet-privacy-dialog").close());
     $("#privacy-understood").addEventListener("click", () => $("#pet-privacy-dialog").close());
+    $("#onboard-next").addEventListener("click", () => {
+      const name = $("#onboard-pet-name").value.trim();
+      if (!name) {
+        showToast("请先给宠物起个名字");
+        $("#onboard-pet-name").focus();
+        return;
+      }
+      $("#onboard-step-pet").hidden = true;
+      $("#onboard-step-nick").hidden = false;
+      $("#onboard-title").textContent = "给自己取个昵称";
+      $("#onboard-subtitle").textContent = "这是你在日记里显示的名字。";
+      setTimeout(() => $("#onboard-nickname").focus(), 50);
+    });
+    $("#onboard-finish").addEventListener("click", async () => {
+      const nickname = $("#onboard-nickname").value.trim();
+      if (!nickname) {
+        showToast("请给自己取个昵称");
+        $("#onboard-nickname").focus();
+        return;
+      }
+      const pet_name = $("#onboard-pet-name").value.trim();
+      try {
+        profile = await apiRequest("/api/profile", {
+          method: "PUT",
+          body: JSON.stringify({ pet_name, nickname, onboarded: true })
+        });
+      } catch (error) {
+        showToast(error.message);
+        return;
+      }
+      profile.onboarded = true;
+      applyProfileToUI();
+      $("#onboard-overlay").hidden = true;
+      showToast("欢迎来到你的日记空间");
+      loadDiaries(1);
+      loadTodayStatus();
+    });
+    $("#close-edit-rule").addEventListener("click", () => $("#edit-rule-dialog").close());
+    $("#edit-rule-understood").addEventListener("click", async () => {
+      const dialog = $("#edit-rule-dialog");
+      const dismiss = $("#edit-rule-dismiss-checkbox").checked;
+      if (typeof dialog.close === "function") dialog.close();
+      else dialog.removeAttribute("open");
+      if (dismiss) {
+        try {
+          profile = await apiRequest("/api/profile", {
+            method: "PUT",
+            body: JSON.stringify({ edit_rule_hint_seen: true })
+          });
+        } catch (_) {
+          profile.edit_rule_hint_seen = true;
+        }
+      }
+    });
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         const blinkImage = $("#pet-blink-image");
@@ -2177,6 +2401,7 @@
         closeModal();
         await refreshAfterDiaryChange();
         renderPetShareButton();
+        if (!wasEditing && !profile.edit_rule_hint_seen) showEditRuleDialog();
       } catch (error) {
         showToast(error.message);
       } finally {
@@ -2209,6 +2434,8 @@
       return `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日 · ${weekdays[date.getDay()]}`;
     }
     $("#page-eyebrow").textContent = homeDateLabel();
+    $("#page-eyebrow").classList.add("home-date");
+    $("#page-title").classList.add("home-tagline");
     try {
       const savedTheme = localStorage.getItem("xiaopeng-diary-theme");
       if (["dark", "warm", "minimal"].includes(savedTheme)) applyTheme(savedTheme);
@@ -2216,12 +2443,15 @@
 
     petAiConsent = readPetConsent();
     preloadPetAssets();
-    renderPetConsent();
-    renderPetShareButton();
 
-    // 页面打开后读取日记列表与后端今日状态；“今天”以服务器时间为准。
-    loadDiaries(1);
-    loadTodayStatus();
+    async function boot() {
+      await ensureOnboarded();
+      if (profile.onboarded) {
+        loadDiaries(1);
+        loadTodayStatus();
+      }
+    }
+    boot();
   </script>
 </body>
 </html>

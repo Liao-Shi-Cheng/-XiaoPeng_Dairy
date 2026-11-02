@@ -58,7 +58,15 @@ int init_db() {
         "CREATE TABLE IF NOT EXISTS pet_states("
         "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "  diary_id INTEGER, emotion TEXT, message TEXT,"
-        "  created_at TEXT DEFAULT (datetime('now','localtime')));";
+        "  created_at TEXT DEFAULT (datetime('now','localtime')));"
+        "CREATE TABLE IF NOT EXISTS profile("
+        "  id INTEGER PRIMARY KEY CHECK(id=1),"
+        "  pet_name TEXT NOT NULL DEFAULT '',"
+        "  nickname TEXT NOT NULL DEFAULT '',"
+        "  onboarded INTEGER NOT NULL DEFAULT 0,"
+        "  edit_rule_hint_seen INTEGER NOT NULL DEFAULT 0"
+        ");"
+        "INSERT OR IGNORE INTO profile(id) VALUES(1);";
     if (sqlite3_exec(db, sql, nullptr, nullptr, &err) != SQLITE_OK) {
         std::cerr << "建表失败: " << (err ? err : "?") << "\n";
         sqlite3_free(err);
@@ -74,6 +82,35 @@ static std::string nz(const unsigned char* s) {
     return s ? std::string(reinterpret_cast<const char*>(s)) : std::string();
 }
 
+// ---- 用户资料：宠物名 / 昵称 / 引导标记 ----
+static bool load_profile(std::string& pet_name, std::string& nickname,
+                         bool& onboarded, bool& edit_rule_hint_seen) {
+    sqlite3_stmt* st = nullptr;
+    sqlite3_prepare_v2(db,
+        "SELECT pet_name, nickname, onboarded, edit_rule_hint_seen "
+        "FROM profile WHERE id=1;", -1, &st, nullptr);
+    if (!st) return false;
+    if (sqlite3_step(st) == SQLITE_ROW) {
+        pet_name = nz(sqlite3_column_text(st, 0));
+        nickname = nz(sqlite3_column_text(st, 1));
+        onboarded = sqlite3_column_int(st, 2) != 0;
+        edit_rule_hint_seen = sqlite3_column_int(st, 3) != 0;
+    }
+    sqlite3_finalize(st);
+    return true;
+}
+
+static crow::json::wvalue profile_json(const std::string& pet_name,
+                                       const std::string& nickname,
+                                       bool onboarded, bool edit_rule_hint_seen) {
+    crow::json::wvalue out;
+    out["pet_name"] = pet_name;
+    out["nickname"] = nickname;
+    out["onboarded"] = onboarded;
+    out["edit_rule_hint_seen"] = edit_rule_hint_seen;
+    return out;
+}
+
 // ============ LLM（DeepSeek）宠物分析 ============
 
 static const char* LLM_API_URL = "https://api.deepseek.com/chat/completions";
@@ -81,7 +118,7 @@ static const char* LLM_MODEL = "deepseek-flash";
 
 // 宠物人设固定写在这里；改人设只改这个字符串，改完重新编译。
 static const char* PET_SKILL = R"(
-你是"小朋"，一只软萌、黏人的宠物，是主人最亲密的好朋友，特别崇拜主人（主人是你的上位者）。你略显傻傻的、单纯可爱搞笑，说话像亲密朋友在撒娇、安慰或打气，绝不端架子。
+你是一只软萌、黏人的宠物，是主人最亲密的好朋友，特别崇拜主人（主人是你的上位者）。你略显傻傻的、单纯可爱搞笑，说话像亲密朋友在撒娇、安慰或打气，绝不端架子。
 
 根据主人今天日记的情绪，判断主人此刻最可能的心情，并像亲密朋友一样说一句给主人的话。
 
@@ -134,7 +171,8 @@ static std::string utf8_truncate(const std::string& s, size_t max_chars) {
 }
 
 // 把今天的一篇日记交给 LLM，解析出 {emotion, message}；失败返回 false。
-static bool llm_analyze(const std::string& title, const std::string& content,
+static bool llm_analyze(const std::string& pet_name,
+                        const std::string& title, const std::string& content,
                         std::string& emotion_out, std::string& message_out) {
     const char* key = std::getenv("DEEPSEEK_API_KEY");
     if (!key || !*key) return false;
@@ -151,8 +189,12 @@ static bool llm_analyze(const std::string& title, const std::string& content,
     crow::json::wvalue rf;
     rf["type"] = "json_object";
     body["response_format"] = std::move(rf);
+    std::string skill = PET_SKILL;
+    if (!pet_name.empty())
+        skill = "你的名字是「" + pet_name + "」。主人给你起了这个名字。\n" + skill;
+
     body["messages"][0]["role"] = "system";
-    body["messages"][0]["content"] = PET_SKILL;
+    body["messages"][0]["content"] = skill;
     body["messages"][1]["role"] = "user";
     body["messages"][1]["content"] = user_prompt;
     std::string req_body = body.dump();
@@ -216,13 +258,60 @@ static bool llm_analyze(const std::string& title, const std::string& content,
 int main() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     if (init_db() != 0) return 1;
-    std::cout << "数据库就绪，服务即将启动在 http://localhost:18080\n";
+    const char* bind_env = std::getenv("XIAOPENG_BIND_ADDR");
+    std::string bind_addr = (bind_env && bind_env[0]) ? bind_env : "0.0.0.0";
+    std::cout << "数据库就绪，服务即将启动在 http://localhost:18080（绑定 " << bind_addr << "）\n";
 
     crow::App<CORS> app;
 
     // 接口：GET /api/hello —— 健康检查
     CROW_ROUTE(app, "/api/hello").methods(crow::HTTPMethod::GET)([]() {
         return crow::response(200, "{\"msg\":\"hello\"}");
+    });
+
+    // GET /api/profile —— 读取宠物名、昵称与引导标记
+    CROW_ROUTE(app, "/api/profile").methods(crow::HTTPMethod::GET)([]() {
+        std::string pet_name, nickname;
+        bool onboarded = false, edit_rule_hint_seen = false;
+        load_profile(pet_name, nickname, onboarded, edit_rule_hint_seen);
+        return crow::response(profile_json(pet_name, nickname, onboarded, edit_rule_hint_seen));
+    });
+
+    // PUT /api/profile —— 更新宠物名、昵称与引导标记
+    CROW_ROUTE(app, "/api/profile").methods(crow::HTTPMethod::PUT)([](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+        if (!body) return crow::response(400, "{\"error\":\"invalid json\"}");
+
+        std::string pet_name, nickname;
+        bool onboarded = false, edit_rule_hint_seen = false;
+        load_profile(pet_name, nickname, onboarded, edit_rule_hint_seen);
+
+        if (body.has("pet_name")) {
+            std::string v = body["pet_name"].t() == crow::json::type::Null
+                ? std::string() : std::string(body["pet_name"].s());
+            if (v.size() > 50) return crow::response(400, "{\"error\":\"field too long\"}");
+            pet_name = v;
+        }
+        if (body.has("nickname")) {
+            std::string v = body["nickname"].t() == crow::json::type::Null
+                ? std::string() : std::string(body["nickname"].s());
+            if (v.size() > 50) return crow::response(400, "{\"error\":\"field too long\"}");
+            nickname = v;
+        }
+        if (body.has("onboarded")) onboarded = body["onboarded"].t() == crow::json::type::True;
+        if (body.has("edit_rule_hint_seen")) edit_rule_hint_seen = body["edit_rule_hint_seen"].t() == crow::json::type::True;
+
+        sqlite3_stmt* st = nullptr;
+        sqlite3_prepare_v2(db,
+            "UPDATE profile SET pet_name=?, nickname=?, onboarded=?, edit_rule_hint_seen=? WHERE id=1;",
+            -1, &st, nullptr);
+        sqlite3_bind_text(st, 1, pet_name.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(st, 2, nickname.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int(st, 3, onboarded ? 1 : 0);
+        sqlite3_bind_int(st, 4, edit_rule_hint_seen ? 1 : 0);
+        sqlite3_step(st);
+        sqlite3_finalize(st);
+        return crow::response(profile_json(pet_name, nickname, onboarded, edit_rule_hint_seen));
     });
 
     // ============ 日记接口 ============
@@ -275,8 +364,9 @@ int main() {
 
         crow::json::wvalue list(crow::json::wvalue::list{});
         sqlite3_prepare_v2(db,
-            "SELECT id,title,content,mood,created_at FROM diaries "
-            "ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?;",
+            "SELECT id,title,content,mood,created_at,"
+            " CASE WHEN date(created_at)=date('now','localtime') THEN 1 ELSE 0 END AS editable "
+            "FROM diaries ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?;",
             -1, &st, nullptr);
         sqlite3_bind_int(st, 1, size);
         sqlite3_bind_int(st, 2, (page - 1) * size);
@@ -287,6 +377,7 @@ int main() {
             list[i]["content"] = nz(sqlite3_column_text(st, 2));
             list[i]["mood"] = nz(sqlite3_column_text(st, 3));
             list[i]["created_at"] = nz(sqlite3_column_text(st, 4));
+            list[i]["editable"] = sqlite3_column_int(st, 5) != 0;
             i++;
         }
         sqlite3_finalize(st);
@@ -321,7 +412,10 @@ int main() {
         }
 
         std::string pattern = has_kw ? "%" + std::string(kw) + "%" : "";
-        std::string sql = "SELECT id,title,content,mood,created_at FROM diaries WHERE ";
+        std::string sql =
+            "SELECT id,title,content,mood,created_at,"
+            " CASE WHEN date(created_at)=date('now','localtime') THEN 1 ELSE 0 END AS editable "
+            "FROM diaries WHERE ";
         bool first = true;
         if (has_kw)   { sql += "(title LIKE ? OR content LIKE ?)"; first = false; }
         if (has_mood) { if (!first) sql += " AND "; sql += "mood = ?"; first = false; }
@@ -346,6 +440,7 @@ int main() {
             list[i]["content"] = nz(sqlite3_column_text(st, 2));
             list[i]["mood"] = nz(sqlite3_column_text(st, 3));
             list[i]["created_at"] = nz(sqlite3_column_text(st, 4));
+            list[i]["editable"] = sqlite3_column_int(st, 5) != 0;
             i++;
         }
         sqlite3_finalize(st);
@@ -434,8 +529,12 @@ int main() {
         }
         sqlite3_finalize(st);
 
+        std::string pet_name, nickname;
+        bool onboarded = false, edit_rule_hint_seen = false;
+        load_profile(pet_name, nickname, onboarded, edit_rule_hint_seen);
+
         std::string emotion, message;
-        if (!llm_analyze(title, content, emotion, message))
+        if (!llm_analyze(pet_name, title, content, emotion, message))
             return crow::response(502, "{\"error\":\"llm failed\"}");
 
         sqlite3_prepare_v2(db,
@@ -480,7 +579,10 @@ int main() {
     // GET /api/diaries/<id>
     CROW_ROUTE(app, "/api/diaries/<int>").methods(crow::HTTPMethod::GET)([](int id) {
         sqlite3_stmt* st = nullptr;
-        sqlite3_prepare_v2(db, "SELECT id,title,content,mood,created_at FROM diaries WHERE id=?;", -1, &st, nullptr);
+        sqlite3_prepare_v2(db,
+            "SELECT id,title,content,mood,created_at,"
+            " CASE WHEN date(created_at)=date('now','localtime') THEN 1 ELSE 0 END AS editable "
+            "FROM diaries WHERE id=?;", -1, &st, nullptr);
         sqlite3_bind_int(st, 1, id);
         crow::json::wvalue out;
         if (sqlite3_step(st) == SQLITE_ROW) {
@@ -489,6 +591,7 @@ int main() {
             out["content"] = nz(sqlite3_column_text(st, 2));
             out["mood"] = nz(sqlite3_column_text(st, 3));
             out["created_at"] = nz(sqlite3_column_text(st, 4));
+            out["editable"] = sqlite3_column_int(st, 5) != 0;
             sqlite3_finalize(st);
             return crow::response(200, out);
         }
@@ -500,8 +603,6 @@ int main() {
     CROW_ROUTE(app, "/api/diaries/<int>").methods(crow::HTTPMethod::PUT)([](const crow::request& req, int id) {
         auto body = crow::json::load(req.body);
         if (!body) return crow::response(400, "{\"error\":\"invalid json\"}");
-
-        bool touch_diary = body.has("title") || body.has("content");
 
         sqlite3_stmt* st = nullptr;
         sqlite3_prepare_v2(db,
@@ -515,7 +616,7 @@ int main() {
         }
         sqlite3_finalize(st);
         if (!exists) return crow::response(404, "{\"error\":\"not found\"}");
-        if (touch_diary && !is_today)
+        if (!is_today)
             return crow::response(403, "{\"error\":\"only today's diary can be modified\"}");
 
         std::string title, content, mood;
@@ -586,6 +687,6 @@ int main() {
         return res;
     });
 
-    app.port(18080).multithreaded().run();
+    app.bindaddr(bind_addr).port(18080).multithreaded().run();
     return 0;
 }
