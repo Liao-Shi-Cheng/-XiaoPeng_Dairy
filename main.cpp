@@ -5,6 +5,8 @@
 #include <cctype>
 #include <string>
 #include <utility>
+#include <map>
+#include <vector>
 
 #include "crow_all.h"
 #include <sqlite3.h>
@@ -450,6 +452,141 @@ int main() {
         return crow::response(out);
     });
 
+    // GET /api/diaries/today —— 今天写过的日记（分享时供选择）
+    CROW_ROUTE(app, "/api/diaries/today").methods(crow::HTTPMethod::GET)([]() {
+        sqlite3_stmt* st = nullptr;
+        sqlite3_prepare_v2(db,
+            "SELECT id, title, created_at FROM diaries "
+            "WHERE date(created_at)=date('now','localtime') "
+            "ORDER BY created_at ASC, id ASC;", -1, &st, nullptr);
+        crow::json::wvalue list(crow::json::wvalue::list{});
+        int i = 0;
+        while (sqlite3_step(st) == SQLITE_ROW) {
+            list[i]["id"] = sqlite3_column_int(st, 0);
+            list[i]["title"] = nz(sqlite3_column_text(st, 1));
+            list[i]["created_at"] = nz(sqlite3_column_text(st, 2));
+            i++;
+        }
+        sqlite3_finalize(st);
+        crow::json::wvalue out;
+        out["diaries"] = std::move(list);
+        return crow::response(out);
+    });
+
+    // GET /api/diaries/all —— 全部日记摘要（导出勾选用）
+    CROW_ROUTE(app, "/api/diaries/all").methods(crow::HTTPMethod::GET)([]() {
+        sqlite3_stmt* st = nullptr;
+        sqlite3_prepare_v2(db,
+            "SELECT id, title, created_at FROM diaries "
+            "ORDER BY created_at ASC, id ASC;", -1, &st, nullptr);
+        crow::json::wvalue list(crow::json::wvalue::list{});
+        int i = 0;
+        while (sqlite3_step(st) == SQLITE_ROW) {
+            list[i]["id"] = sqlite3_column_int(st, 0);
+            list[i]["title"] = nz(sqlite3_column_text(st, 1));
+            list[i]["created_at"] = nz(sqlite3_column_text(st, 2));
+            i++;
+        }
+        sqlite3_finalize(st);
+        crow::json::wvalue out;
+        out["diaries"] = std::move(list);
+        return crow::response(out);
+    });
+
+    // POST /api/diaries/export —— 按勾选的 id 导出 Markdown
+    CROW_ROUTE(app, "/api/diaries/export").methods(crow::HTTPMethod::POST)([](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+        if (!body || !body.has("ids") || body["ids"].t() != crow::json::type::List)
+            return crow::response(400, "{\"error\":\"ids required\"}");
+
+        const auto& ids = body["ids"];
+        std::string placeholders;
+        for (size_t i = 0; i < ids.size(); i++) {
+            if (ids[i].t() != crow::json::type::Number)
+                return crow::response(400, "{\"error\":\"invalid ids\"}");
+            if (!placeholders.empty()) placeholders += ",";
+            placeholders += std::to_string(static_cast<long long>(ids[i].d()));
+        }
+        if (placeholders.empty())
+            return crow::response(400, "{\"error\":\"no diaries selected\"}");
+
+        std::string md = "# 我的小朋日记\n\n";
+        std::string sql =
+            "SELECT title, content, mood, created_at FROM diaries "
+            "WHERE id IN (" + placeholders + ") ORDER BY created_at ASC, id ASC;";
+        sqlite3_stmt* st = nullptr;
+        sqlite3_prepare_v2(db, sql.c_str(), -1, &st, nullptr);
+        while (sqlite3_step(st) == SQLITE_ROW) {
+            md += "## " + nz(sqlite3_column_text(st, 0)) + "\n\n";
+            md += "> " + nz(sqlite3_column_text(st, 3)) + "\n\n";
+            md += nz(sqlite3_column_text(st, 1)) + "\n\n---\n\n";
+        }
+        sqlite3_finalize(st);
+
+        crow::response res(md);
+        res.set_header("Content-Type", "text/markdown; charset=utf-8");
+        res.set_header("Content-Disposition", "attachment; filename=\"diaries.md\"");
+        return res;
+    });
+
+    // GET /api/stats/mood?days=7 —— 最近 N 天的篇数与心情分布（供折线+条柱统计图使用）
+    CROW_ROUTE(app, "/api/stats/mood").methods(crow::HTTPMethod::GET)([](const crow::request& req) {
+        int days = 7;
+        if (const char* d = req.url_params.get("days")) {
+            int v = atoi(d);
+            if (v >= 1 && v <= 31) days = v;
+        }
+
+        std::map<std::string, int> totals;
+        std::map<std::string, std::map<std::string, int>> moodCounts;
+
+        sqlite3_stmt* st = nullptr;
+        std::string rangeSql =
+            "SELECT date(created_at) d, mood, COUNT(*) c FROM diaries "
+            "WHERE date(created_at) >= date('now','localtime','-' || ? || ' day') "
+            "GROUP BY date(created_at), mood;";
+        sqlite3_prepare_v2(db, rangeSql.c_str(), -1, &st, nullptr);
+        sqlite3_bind_int(st, 1, days - 1);
+        while (sqlite3_step(st) == SQLITE_ROW) {
+            std::string d = nz(sqlite3_column_text(st, 0));
+            std::string mood = nz(sqlite3_column_text(st, 1));
+            int c = sqlite3_column_int(st, 2);
+            totals[d] += c;
+            if (!mood.empty()) moodCounts[d][mood] += c;
+        }
+        sqlite3_finalize(st);
+
+        // 生成最近 days 天（含今天）的升序日期序列，没有数据的日期补 0
+        sqlite3_prepare_v2(db,
+            "WITH RECURSIVE dates(d) AS ("
+            "  SELECT date('now','localtime','-' || ? || ' day')"
+            "  UNION ALL"
+            "  SELECT date(d,'+1 day') FROM dates WHERE d < date('now','localtime')"
+            ") SELECT d FROM dates ORDER BY d;", -1, &st, nullptr);
+        sqlite3_bind_int(st, 1, days - 1);
+        std::vector<std::string> dateKeys;
+        while (sqlite3_step(st) == SQLITE_ROW) {
+            dateKeys.push_back(nz(sqlite3_column_text(st, 0)));
+        }
+        sqlite3_finalize(st);
+
+        crow::json::wvalue points(crow::json::wvalue::list{});
+        int i = 0;
+        for (const std::string& d : dateKeys) {
+            points[i]["date"] = d;
+            points[i]["total"] = totals[d];
+            for (const auto& kv : moodCounts[d]) {
+                points[i]["moods"][kv.first] = kv.second;
+            }
+            i++;
+        }
+
+        crow::json::wvalue out;
+        out["days"] = days;
+        out["points"] = std::move(points);
+        return crow::response(out);
+    });
+
     // GET /api/status —— 今日状态（"今天"以服务器本地时间为准）
     CROW_ROUTE(app, "/api/status")([] {
         sqlite3_stmt* st = nullptr;
@@ -497,13 +634,28 @@ int main() {
         if (!body.has("consent") || body["consent"].t() != crow::json::type::True)
             return crow::response(400, "{\"error\":\"consent required\"}");
 
+        // 支持指定分享哪一篇（必须是今天的）；不指定则沿用“今天最新一篇”。
+        int requested_id = 0;
+        if (body.has("diary_id") && body["diary_id"].t() == crow::json::type::Number)
+            requested_id = static_cast<int>(body["diary_id"].d());
+        if (requested_id < 0)
+            return crow::response(400, "{\"error\":\"invalid diary_id\"}");
+
         sqlite3_stmt* st = nullptr;
         int diary_id = 0;
         std::string title, content;
-        sqlite3_prepare_v2(db,
-            "SELECT id, title, content FROM diaries "
-            "WHERE date(created_at)=date('now','localtime') ORDER BY id DESC LIMIT 1;",
-            -1, &st, nullptr);
+        if (requested_id > 0) {
+            sqlite3_prepare_v2(db,
+                "SELECT id, title, content FROM diaries "
+                "WHERE id=? AND date(created_at)=date('now','localtime');",
+                -1, &st, nullptr);
+            sqlite3_bind_int(st, 1, requested_id);
+        } else {
+            sqlite3_prepare_v2(db,
+                "SELECT id, title, content FROM diaries "
+                "WHERE date(created_at)=date('now','localtime') ORDER BY id DESC LIMIT 1;",
+                -1, &st, nullptr);
+        }
         if (sqlite3_step(st) == SQLITE_ROW) {
             diary_id = sqlite3_column_int(st, 0);
             title = nz(sqlite3_column_text(st, 1));
@@ -514,11 +666,12 @@ int main() {
         }
         sqlite3_finalize(st);
 
-        // 幂等：当天已有分析结果直接返回缓存，不重复调用 LLM
+        // 幂等：同一篇日记当天已有分析结果则直接返回缓存，不重复调用 LLM
         sqlite3_prepare_v2(db,
             "SELECT emotion, message FROM pet_states "
-            "WHERE date(created_at)=date('now','localtime') ORDER BY id DESC LIMIT 1;",
+            "WHERE diary_id=? ORDER BY id DESC LIMIT 1;",
             -1, &st, nullptr);
+        sqlite3_bind_int(st, 1, diary_id);
         if (sqlite3_step(st) == SQLITE_ROW) {
             crow::json::wvalue out;
             out["emotion"] = nz(sqlite3_column_text(st, 0));
@@ -651,6 +804,12 @@ int main() {
         if (body.has("content")) sqlite3_bind_text(st, idx++, content.c_str(), -1, SQLITE_TRANSIENT);
         if (body.has("mood"))    sqlite3_bind_text(st, idx++, mood.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int(st, idx, id);
+        sqlite3_step(st);
+        sqlite3_finalize(st);
+
+        // 日记内容变化后，作废它当天的宠物分析缓存，下次分享时重新分析
+        sqlite3_prepare_v2(db, "DELETE FROM pet_states WHERE diary_id=?;", -1, &st, nullptr);
+        sqlite3_bind_int(st, 1, id);
         sqlite3_step(st);
         sqlite3_finalize(st);
 

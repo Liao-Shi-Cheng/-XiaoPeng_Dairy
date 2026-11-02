@@ -1072,6 +1072,44 @@
     .onboard-step input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
     .onboard-pet-preview { display: grid; place-items: center; padding: 4px 0 2px; }
     .onboard-pet-preview img { width: 96px; height: 96px; object-fit: contain; filter: drop-shadow(0 10px 12px rgba(13,31,64,.18)); }
+    /* ===== 修改：船舵按钮、导出勾选 ===== */
+    .home-wheel-section { display: grid; place-items: center; margin: 28px 0 10px; }
+    .home-wheel-section[hidden] { display: none; }
+    .wheel-btn { position: relative; border: 0; background: transparent; padding: 0; width: min(76vw, 360px); aspect-ratio: 1; border-radius: 50%; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .2s cubic-bezier(.34, 1.56, .64, 1); filter: drop-shadow(0 18px 30px rgba(72, 46, 20, .24)); }
+    .wheel-btn:active { transform: scale(.92); }
+    .wheel-btn .wheel-rotor { display: block; width: 100%; height: 100%; }
+    .wheel-image { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+    .wheel-btn.spinning .wheel-rotor { animation: wheel-spin .68s cubic-bezier(.22, .72, .26, 1); }
+    @keyframes wheel-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .wheel-pet { position: absolute; right: -1%; bottom: 3%; width: 26%; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 5px 9px rgba(30, 42, 32, .28)); pointer-events: none; }
+    body[data-theme="dark"] .wheel-btn { filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .55)); }
+    body[data-theme="dark"] .wheel-image { filter: brightness(0) invert(1); }
+    .export-list { margin-top: 14px; max-height: min(48vh, 420px); overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+    .export-item { display: flex; align-items: center; gap: 11px; padding: 12px 13px; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .export-item:last-child { border-bottom: 0; }
+    .export-item input { width: 18px; height: 18px; flex: 0 0 18px; accent-color: var(--primary); cursor: pointer; }
+    .export-item-main { display: grid; gap: 3px; min-width: 0; }
+    .export-item-main strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .export-item-main small { color: var(--muted); font-size: 11px; }
+    .export-actions { gap: 9px; }
+    @media (max-width: 480px) {
+      .wheel-btn { width: min(76vw, 310px); }
+    }
+    /* ===== 修改：个人主页心情统计图 ===== */
+    .mood-stats-section { margin-top: 30px; }
+    .mood-chart-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 18px 16px 16px; }
+    body[data-theme="minimal"] .mood-chart-card { border-radius: 12px; }
+    .mood-chart-card svg { display: block; width: 100%; height: auto; }
+    .chart-gridline { stroke: var(--line); stroke-width: 1; }
+    .chart-axis-label { fill: var(--muted); font-size: 11px; }
+    .chart-line { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+    .chart-point { fill: var(--surface-solid); stroke: var(--accent); stroke-width: 2.2; }
+    .mood-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+    .legend-swatch { width: 12px; height: 12px; border-radius: 4px; }
+    @media (max-width: 680px) {
+      .mood-chart-card { padding: 14px 10px 12px; }
+    }
   </style>
 </head>
 <body data-theme="warm" data-emotion-endpoint="/api/pet/share">
@@ -1144,7 +1182,15 @@
             <span class="write-arrow" aria-hidden="true">↗</span>
           </button>
         </div>
-        <section class="home-pet-section" aria-labelledby="pet-section-title">
+        <section class="home-wheel-section" id="home-wheel-section" aria-label="写日记船舵" hidden>
+          <button type="button" class="wheel-btn" id="wheel-btn" aria-label="写下今天的日记" title="写下今天的日记">
+            <span class="wheel-rotor">
+              <img class="wheel-image" src="static/assets/pets/wheel.png" alt="" draggable="false">
+            </span>
+            <img class="wheel-pet" src="static/assets/pets/calm.png" alt="你的宠物">
+          </button>
+        </section>
+        <section class="home-pet-section" id="home-pet-section" aria-labelledby="pet-section-title">
           <div class="section-head">
             <div><h2 id="pet-section-title">宠物的心情</h2><p>它会陪你记录，也会回应你今天的心情。</p></div>
           </div>
@@ -1229,6 +1275,13 @@
           </section>
 
         </div>
+        <section class="mood-stats-section" aria-label="最近七天心情统计">
+          <div class="section-head"><div><h2>最近 7 天心情统计</h2><p>折线是每天日记篇数，条柱是当天心情分布。</p></div></div>
+          <div class="mood-chart-card">
+            <svg id="mood-chart" viewBox="0 0 660 320" role="img" aria-label="最近七天心情统计图"></svg>
+            <div class="mood-legend" id="mood-legend"></div>
+          </div>
+        </section>
         <section class="settings-section" aria-label="设置">
           <div class="section-head"><div><h2>设置</h2><p>账号信息与应用信息。</p></div></div>
           <div class="settings-list">
@@ -1355,6 +1408,44 @@
       </div>
       <div class="privacy-actions">
         <button type="button" class="primary-btn" id="edit-rule-understood">知道了</button>
+      </div>
+    </div>
+  </dialog>
+  <dialog class="privacy-dialog" id="export-dialog" aria-labelledby="export-dialog-title">
+    <div class="privacy-inner">
+      <div class="privacy-head">
+        <div>
+          <div class="eyebrow">EXPORT · MARKDOWN</div>
+          <h2 id="export-dialog-title">导出日记</h2>
+        </div>
+        <button type="button" class="close-btn" id="close-export" aria-label="关闭">×</button>
+      </div>
+      <div class="privacy-copy">
+        <p>勾选要导出的日记，然后点击“导出”。没有勾选的日记不会出现在文件里。</p>
+      </div>
+      <div class="export-list" id="export-list"></div>
+      <div class="privacy-actions export-actions">
+        <button type="button" class="secondary-btn" id="export-cancel">取消</button>
+        <button type="button" class="primary-btn" id="export-confirm">导出</button>
+      </div>
+    </div>
+  </dialog>
+  <dialog class="privacy-dialog" id="share-dialog" aria-labelledby="share-dialog-title">
+    <div class="privacy-inner">
+      <div class="privacy-head">
+        <div>
+          <div class="eyebrow">SHARE · TODAY</div>
+          <h2 id="share-dialog-title">分享哪一篇日记</h2>
+        </div>
+        <button type="button" class="close-btn" id="close-share" aria-label="关闭">×</button>
+      </div>
+      <div class="privacy-copy">
+        <p>今天写了好几篇日记，请选择要分享给宠物分析的那一篇。</p>
+      </div>
+      <div class="export-list" id="share-list"></div>
+      <div class="privacy-actions export-actions">
+        <button type="button" class="secondary-btn" id="share-cancel">取消</button>
+        <button type="button" class="primary-btn" id="share-confirm">分享</button>
       </div>
     </div>
   </dialog>
@@ -1667,6 +1758,119 @@
       return map[mood] || (mood ? "♡" : "✧");
     }
 
+    // ---- 最近 7 天心情统计（折线 + 按心情分色条柱） ----
+    const MOOD_COLORS = {
+      "开心": "#1fc267",
+      "难过": "#8b9097",
+      "生气": "#ef4444",
+      "平静": "#2f7cf6",
+      "兴奋": "#f7c400",
+      "疲惫": "#8f5cf0"
+    };
+    const MOOD_COLOR_ORDER = ["开心", "难过", "生气", "平静", "兴奋", "疲惫"];
+
+    function lighten(hex, ratio) {
+      const n = parseInt(hex.slice(1), 16);
+      const mix = (c) => Math.round(c + (255 - c) * ratio);
+      return `rgb(${mix((n >> 16) & 255)},${mix((n >> 8) & 255)},${mix(n & 255)})`;
+    }
+
+    function renderMoodLegend() {
+      const box = $("#mood-legend");
+      if (!box) return;
+      box.innerHTML = MOOD_COLOR_ORDER.map(mood => `
+        <span class="legend-item"><span class="legend-swatch" style="background:${MOOD_COLORS[mood]}"></span>${mood}</span>
+      `).join("");
+    }
+
+    function moodDateLabel(dateStr) {
+      const parts = String(dateStr).split("-").map(Number);
+      if (parts.length !== 3 || parts.some(Number.isNaN)) return { short: "", weekday: "" };
+      const [y, m, d] = parts;
+      const weekday = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+      return { short: `${m}/${d}`, weekday };
+    }
+
+    function renderMoodChart(points) {
+      const svg = $("#mood-chart");
+      if (!svg) return;
+      const W = 660, H = 320;
+      const padL = 38, padR = 12, padT = 18, padB = 42;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const baseY = padT + plotH;
+      const list = Array.isArray(points) ? points.slice(-7) : [];
+      while (list.length < 7) list.unshift({ date: "", total: 0, moods: {} });
+
+      const rawMax = Math.max(0, ...list.map(p => Number(p.total) || 0));
+      const maxVal = Math.max(1, Math.ceil(rawMax * 1.25));
+      const y = (v) => baseY - (Number(v) || 0) * (plotH / maxVal);
+      const slot = plotW / 7;
+      const barW = Math.min(34, slot * 0.42);
+      const x = (i) => padL + i * slot + slot / 2;
+
+      const defs = MOOD_COLOR_ORDER.map((mood, idx) => (
+        `<linearGradient id="mood-grad-${idx}" x1="0" y1="0" x2="0" y2="1">` +
+        `<stop offset="0%" stop-color="${MOOD_COLORS[mood]}"/>` +
+        `<stop offset="100%" stop-color="${lighten(MOOD_COLORS[mood], 0.58)}"/>` +
+        `</linearGradient>`
+      )).join("");
+
+      const parts = [];
+      const tickCount = Math.max(1, Math.min(6, maxVal));
+      const step = Math.max(1, Math.ceil(maxVal / tickCount));
+      for (let t = 0; t <= maxVal; t += step) {
+        const yy = y(t);
+        parts.push(`<line class="chart-gridline" x1="${padL}" y1="${yy}" x2="${W - padR}" y2="${yy}"/>`);
+        parts.push(`<text class="chart-axis-label" x="${padL - 8}" y="${yy + 4}" text-anchor="end">${t}</text>`);
+      }
+
+      list.forEach((p, i) => {
+        const total = Number(p.total) || 0;
+        if (!total) return;
+        const moods = p.moods || {};
+        const topY = y(total);
+        const height = baseY - topY;
+        const bx = x(i) - barW / 2;
+        let acc = 0;
+        const counted = MOOD_COLOR_ORDER.reduce((sum, mood) => sum + (Number(moods[mood]) || 0), 0);
+        MOOD_COLOR_ORDER.forEach((mood, mi) => {
+          const c = Number(moods[mood]) || 0;
+          if (c <= 0) return;
+          const segW = barW * (c / total);
+          parts.push(`<rect x="${(bx + acc).toFixed(2)}" y="${topY.toFixed(2)}" width="${segW.toFixed(2)}" height="${height.toFixed(2)}" fill="url(#mood-grad-${mi})" rx="1"/>`);
+          acc += segW;
+        });
+        if (counted < total) {
+          const segW = barW * ((total - counted) / total);
+          parts.push(`<rect x="${(bx + acc).toFixed(2)}" y="${topY.toFixed(2)}" width="${segW.toFixed(2)}" height="${height.toFixed(2)}" fill="var(--line)" opacity=".55" rx="1"/>`);
+        }
+      });
+
+      const linePts = list.map((p, i) => `${x(i).toFixed(1)},${y(p.total).toFixed(1)}`).join(" ");
+      parts.push(`<polyline class="chart-line" points="${linePts}"/>`);
+      list.forEach((p, i) => {
+        parts.push(`<circle class="chart-point" cx="${x(i).toFixed(1)}" cy="${y(p.total).toFixed(1)}" r="3"/>`);
+      });
+
+      list.forEach((p, i) => {
+        const label = moodDateLabel(p.date);
+        parts.push(`<text class="chart-axis-label" x="${x(i).toFixed(1)}" y="${H - 22}" text-anchor="middle">${label.weekday}</text>`);
+        parts.push(`<text class="chart-axis-label" x="${x(i).toFixed(1)}" y="${H - 9}" text-anchor="middle">${label.short}</text>`);
+      });
+
+      svg.innerHTML = `<defs>${defs}</defs>` + parts.join("");
+    }
+
+    async function loadMoodStats() {
+      try {
+        const data = await apiRequest("/api/stats/mood?days=7");
+        renderMoodChart(data && data.points ? data.points : []);
+      } catch (_) {
+        renderMoodChart([]);
+      }
+    }
+
     // 把日记对象渲染成卡片；所有用户内容都先转义，避免 HTML 注入。
     function diaryCard(diary) {
       const mood = diary.mood || "";
@@ -1875,16 +2079,17 @@
       button.textContent = petAnalyzing ? "正在听你的心情…" : "分享今天给" + petName();
     }
 
-    async function shareDiaryToday() {
+    async function doShareDiary(diaryId) {
       if (!petAiConsent || petAnalyzing) return false;
       const requestId = ++petAnalysisRequestId;
       petAnalyzing = true;
       setPetAiStatus("loading");
       renderPetShareButton();
       try {
+        const payload = diaryId ? { consent: true, diary_id: diaryId } : { consent: true };
         const data = await apiRequest(EMOTION_ANALYSIS_PATH, {
           method: "POST",
-          body: JSON.stringify({ consent: true })
+          body: JSON.stringify(payload)
         });
         if (requestId !== petAnalysisRequestId) return false;
         const result = normalizeEmotionResult(data);
@@ -1908,12 +2113,42 @@
       }
     }
 
+    async function shareDiaryToday() {
+      if (!petAiConsent || petAnalyzing) return false;
+      let todayList = [];
+      try {
+        const data = await apiRequest("/api/diaries/today");
+        todayList = Array.isArray(data.diaries) ? data.diaries : [];
+      } catch (_) {}
+      if (!todayList.length) {
+        showToast("今天还没有可以分享的日记");
+        await loadTodayStatus();
+        return false;
+      }
+      if (todayList.length === 1) {
+        return doShareDiary(Number(todayList[0].id));
+      }
+      const list = $("#share-list");
+      list.innerHTML = todayList.map((diary, index) => `
+        <label class="export-item">
+          <input type="radio" name="share-diary" value="${Number(diary.id)}" ${index === 0 ? "checked" : ""}>
+          <span class="export-item-main"><strong>${escapeHtml(diary.title || "无标题日记")}</strong><small>${escapeHtml(formatDate(diary.created_at))}</small></span>
+        </label>`).join("");
+      const dialog = $("#share-dialog");
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+      return true;
+    }
+
     function renderTodayStatus() {
       const wrap = $("#home-daily-write-wrap");
+      const wheel = $("#home-wheel-section");
+      const petSection = $("#home-pet-section");
       const pet = $("#home-pet");
       if (wrap) wrap.hidden = todayStatus.written === true;
-      if (!pet) return;
-      pet.dataset.petState = todayStatus.written ? "written" : "waiting";
+      if (wheel) wheel.hidden = todayStatus.written === true;
+      if (petSection) petSection.hidden = todayStatus.written !== true;
+      if (pet) pet.dataset.petState = todayStatus.written ? "written" : "waiting";
     }
 
     async function loadTodayStatus() {
@@ -1983,6 +2218,7 @@
       $("#page-title").classList.toggle("home-tagline", view === "home");
       if (view === "diaries") loadDiaries(currentPage);
       if (view === "home") { loadDiaries(1); loadTodayStatus(); }
+      if (view === "profile") loadMoodStats();
       if (view === "search") $("#search-keyword").focus({ preventScroll: true });
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -2189,8 +2425,40 @@
     }
 
     async function exportDiaries() {
+      let all = [];
       try {
-        const response = await apiRequest("/api/diaries/export");
+        const data = await apiRequest("/api/diaries/all");
+        all = Array.isArray(data.diaries) ? data.diaries : [];
+      } catch (error) {
+        showToast(error.message);
+        return;
+      }
+      if (!all.length) {
+        showToast("还没有日记可以导出");
+        return;
+      }
+      const list = $("#export-list");
+      list.innerHTML = all.map(diary => `
+        <label class="export-item">
+          <input type="checkbox" data-export-id="${Number(diary.id)}" checked>
+          <span class="export-item-main"><strong>${escapeHtml(diary.title || "无标题日记")}</strong><small>${escapeHtml(formatDate(diary.created_at))}</small></span>
+        </label>`).join("");
+      const dialog = $("#export-dialog");
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    }
+
+    async function exportSelectedDiaries() {
+      const ids = $$("#export-list input:checked").map(el => Number(el.dataset.exportId));
+      if (!ids.length) {
+        showToast("请先勾选要导出的日记");
+        return;
+      }
+      try {
+        const response = await apiRequest("/api/diaries/export", {
+          method: "POST",
+          body: JSON.stringify({ ids })
+        });
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -2200,6 +2468,9 @@
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
+        const dialog = $("#export-dialog");
+        if (typeof dialog.close === "function") dialog.close();
+        else dialog.removeAttribute("open");
         showToast("已开始导出 diaries.md");
       } catch (error) {
         showToast(error.message);
@@ -2314,6 +2585,40 @@
         }
       }
     });
+    $("#export-cancel").addEventListener("click", () => $("#export-dialog").close());
+    $("#close-export").addEventListener("click", () => $("#export-dialog").close());
+    $("#export-confirm").addEventListener("click", exportSelectedDiaries);
+    $("#share-cancel").addEventListener("click", () => $("#share-dialog").close());
+    $("#close-share").addEventListener("click", () => $("#share-dialog").close());
+    $("#share-confirm").addEventListener("click", () => {
+      const checked = document.querySelector('#share-list input[name="share-diary"]:checked');
+      if (!checked) {
+        showToast("请选择一篇日记");
+        return;
+      }
+      const dialog = $("#share-dialog");
+      if (typeof dialog.close === "function") dialog.close();
+      else dialog.removeAttribute("open");
+      doShareDiary(Number(checked.value));
+    });
+    $("#wheel-btn").addEventListener("click", event => {
+      const btn = event.currentTarget;
+      if (btn.dataset.busy === "true") return;
+      if (!prefersReducedMotion()) {
+        btn.classList.remove("spinning");
+        void btn.offsetWidth;
+        btn.classList.add("spinning");
+        btn.addEventListener("animationend", function handler() {
+          btn.classList.remove("spinning");
+          btn.removeEventListener("animationend", handler);
+        }, { once: true });
+      }
+      btn.dataset.busy = "true";
+      setTimeout(() => {
+        btn.dataset.busy = "false";
+        openModal("new");
+      }, 1000);
+    });
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         const blinkImage = $("#pet-blink-image");
@@ -2400,6 +2705,9 @@
         }
         closeModal();
         await refreshAfterDiaryChange();
+        if (wasEditing) {
+          await loadTodayStatus();
+        }
         renderPetShareButton();
         if (!wasEditing && !profile.edit_rule_hint_seen) showEditRuleDialog();
       } catch (error) {
@@ -2443,6 +2751,7 @@
 
     petAiConsent = readPetConsent();
     preloadPetAssets();
+    renderMoodLegend();
 
     async function boot() {
       await ensureOnboarded();
