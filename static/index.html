@@ -1107,6 +1107,11 @@
     .mood-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
     .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
     .legend-swatch { width: 12px; height: 12px; border-radius: 4px; }
+    .reset-section { margin-top: 30px; }
+    .danger-reset-btn { border: 1px solid #e7c9c5; background: #fff5f3; color: #b14d40; border-radius: 12px; padding: 12px 16px; font-size: 13px; font-weight: 700; }
+    .danger-reset-btn:hover { background: #fdecea; }
+    body[data-theme="dark"] .danger-reset-btn { border-color: #69413d; background: #382724; color: #ffaaa0; }
+    .reset-hint { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
     @media (max-width: 680px) {
       .mood-chart-card { padding: 14px 10px 12px; }
     }
@@ -1289,6 +1294,11 @@
             <button class="settings-row" type="button" data-go="about"><span class="settings-row-icon">ⓘ</span><span class="settings-row-main"><strong>关于</strong><small>了解小朋日记</small></span><span class="settings-row-arrow">›</span></button>
             <div class="settings-row settings-version"><span class="settings-row-icon">⌘</span><span class="settings-row-main"><strong>版本号</strong><small>小朋日记 v1.0.0</small></span><span class="version-pill">v1.0.0</span></div>
           </div>
+        </section>
+        <section class="reset-section" aria-label="重置宠物与昵称">
+          <div class="section-head"><div><h2>数据管理</h2><p>重新开始，日记会保留。</p></div></div>
+          <button type="button" class="danger-reset-btn" id="reset-pet-btn">一键重置宠物与昵称</button>
+          <p class="reset-hint">点击后将清除当前宠物名字和昵称，下次打开会重新进入领养流程；你的日记不会被删除。</p>
         </section>
       </section>
 
@@ -2618,6 +2628,26 @@
         btn.dataset.busy = "false";
         openModal("new");
       }, 1000);
+    });
+    $("#reset-pet-btn").addEventListener("click", async () => {
+      if (!confirm("确定要重置宠物名字和昵称吗？\n日记会保留，下次打开会重新进入领养页面。")) return;
+      try {
+        profile = await apiRequest("/api/profile", {
+          method: "PUT",
+          body: JSON.stringify({ pet_name: "", nickname: "", onboarded: false })
+        });
+      } catch (error) {
+        showToast(error.message);
+        return;
+      }
+      profile.onboarded = false;
+      profile.pet_name = "";
+      profile.nickname = "";
+      applyProfileToUI();
+      $("#onboard-pet-name").value = "";
+      $("#onboard-nickname").value = "";
+      showOnboarding();
+      showToast("已重置，重新领养宠物吧");
     });
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
