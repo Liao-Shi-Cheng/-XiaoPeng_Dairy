@@ -228,6 +228,7 @@
     .profile-card .section-head h2 { font-size: 19px; margin: 0; }
     .profile-card .section-head p { display: none; }
     .home-daily-write-wrap { margin: 0 0 18px; }
+    .home-sail-hint { margin: 0 0 6px; text-align: center; color: var(--muted); font-size: 16px; font-weight: 650; letter-spacing: .32em; line-height: 2; }
     .home-daily-write-btn { width: 100%; min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 20px; border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--line)); border-radius: 18px; background: linear-gradient(105deg, color-mix(in srgb, var(--primary-soft) 86%, var(--surface)), var(--surface)); color: var(--text); text-align: left; box-shadow: 0 6px 18px rgba(50, 70, 48, .05); }
     .home-daily-write-btn .write-copy { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .home-daily-write-btn .write-mark { width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border-radius: 12px; background: var(--primary); color: #fff; font-size: 22px; line-height: 1; }
@@ -1112,6 +1113,17 @@
     .danger-reset-btn:hover { background: #fdecea; }
     body[data-theme="dark"] .danger-reset-btn { border-color: #69413d; background: #382724; color: #ffaaa0; }
     .reset-hint { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .sail-overlay { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; background: rgba(18, 22, 18, 0); transition: background .35s ease; pointer-events: none; }
+    .sail-overlay.show { background: rgba(18, 22, 18, .38); }
+    .sail-text { color: #fff; font-size: clamp(34px, 6vw, 58px); font-weight: 800; letter-spacing: .12em; text-shadow: 0 4px 18px rgba(0, 0, 0, .25); clip-path: inset(0 100% 0 0); opacity: 0; }
+    .sail-overlay.show .sail-text { animation: sail-reveal .75s ease-out forwards; }
+    @keyframes sail-reveal {
+      0% { clip-path: inset(0 100% 0 0); opacity: 0; transform: translateX(-24px); }
+      100% { clip-path: inset(0 0 0 0); opacity: 1; transform: translateX(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sail-overlay.show .sail-text { animation: none; clip-path: inset(0 0 0 0); opacity: 1; transform: none; }
+    }
     @media (max-width: 680px) {
       .mood-chart-card { padding: 14px 10px 12px; }
     }
@@ -1182,10 +1194,7 @@
 
       <section class="view-panel active" id="view-home">
         <div class="home-daily-write-wrap" id="home-daily-write-wrap">
-          <button type="button" class="home-daily-write-btn" id="home-daily-write-btn">
-            <span class="write-copy"><span class="write-mark">＋</span><span><strong>写下今天的日记</strong><small>给今天留下一点值得记住的事</small></span></span>
-            <span class="write-arrow" aria-hidden="true">↗</span>
-          </button>
+          <p class="home-sail-hint">旋转船舵，开启首篇</p>
         </div>
         <section class="home-wheel-section" id="home-wheel-section" aria-label="写日记船舵" hidden>
           <button type="button" class="wheel-btn" id="wheel-btn" aria-label="写下今天的日记" title="写下今天的日记">
@@ -1480,6 +1489,9 @@
         </div>
       </div>
     </div>
+  </div>
+  <div class="sail-overlay" id="sail-overlay" aria-hidden="true">
+    <div class="sail-text">今日，起航</div>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -2491,7 +2503,6 @@
     $$("[data-view]").forEach(button => button.addEventListener("click", () => navigate(button.dataset.view)));
     $$("[data-go]").forEach(button => button.addEventListener("click", () => navigate(button.dataset.go)));
     $("#new-diary-btn").addEventListener("click", () => openModal("new"));
-    $("#home-daily-write-btn").addEventListener("click", () => openModal("new"));
     $("#mobile-new-diary-btn").addEventListener("click", () => openModal("new"));
     $("#close-modal").addEventListener("click", closeModal);
     $("#cancel-modal").addEventListener("click", closeModal);
@@ -2611,6 +2622,23 @@
       else dialog.removeAttribute("open");
       doShareDiary(Number(checked.value));
     });
+    function showSailOverlay() {
+      const overlay = $("#sail-overlay");
+      if (!overlay) return;
+      const text = overlay.querySelector(".sail-text");
+      if (text) {
+        text.style.animation = "none";
+        void text.offsetWidth;
+        text.style.animation = "";
+      }
+      overlay.classList.add("show");
+    }
+
+    function hideSailOverlay() {
+      const overlay = $("#sail-overlay");
+      if (overlay) overlay.classList.remove("show");
+    }
+
     $("#wheel-btn").addEventListener("click", event => {
       const btn = event.currentTarget;
       if (btn.dataset.busy === "true") return;
@@ -2624,7 +2652,9 @@
         }, { once: true });
       }
       btn.dataset.busy = "true";
+      showSailOverlay();
       setTimeout(() => {
+        hideSailOverlay();
         btn.dataset.busy = "false";
         openModal("new");
       }, 1000);
